@@ -13,18 +13,19 @@
 # limitations under the License.
 """Class to inherit your HiveJobs from. See README for more info
 """
-import sys
 import os
 import re
-import hashlib
 import time
+import hashlib
+import logging
+
 import boto
 from boto.emr.step import HiveStep
 from boto.emr.step import InstallHiveStep
 from boto.emr.connection import EmrConnection
-from boto.s3.connection import S3Connection
-from boto.s3.key import Key
-from script import HiveQuery
+
+from apiarist.script import HiveQuery
+from apiarist.s3 import *
 
 log = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ class HiveJob(object):
         # S3 - until we can run locally
         self.base_path      = os.environ['S3_BASE_PATH']
         self.output_path    = self.base_path + self.job_id + '/output/' 
-        self.data_path      = self.base_path + self.job_id + '/data/'
+        self.data_path      = self.base_path + self.job_id + '/data'
         self.table_path     = self.base_path + self.job_id + '/tables/' 
         self.script_path    = self.base_path + self.job_id + '/script.hql' 
         self.log_path       = self.base_path + 'logs/' # TODO allow alternate logging path
@@ -68,15 +69,16 @@ class HiveJob(object):
         digest = hashlib.md5(run_id).hexdigest()
         return 'hj-' + digest
    
-    def _generate_and_upload_hive_script(self, data_source):
-        self.generate_hive_script(data_source)
-        self._upload_file_to_s3(self.local_script_file, self.script_path)
+    def _generate_and_upload_hive_script(self):
+        self.generate_hive_script(self.data_path)
+        upload_file_to_s3(self.local_script_file, self.script_path)
 
-    def run(self, data_source):
+    def run(self, input_data):
 
-        # TODO _ copy the data source to a nuw object (Hive deletes/moves the original)
-
-        self._generate_and_upload_hive_script(data_source)
+        # copy the data source to a nuw object (Hive deletes/moves the original)
+        copy_s3_file(input_data, self.data_path)
+        # and create the hive script
+        self._generate_and_upload_hive_script()
 
         # TODO wait 5 secs for S3 consistency 
         print("Waiting 5s for S3 eventual consistency")
@@ -100,30 +102,6 @@ class HiveJob(object):
 
         self._wait_for_job_to_complete(conn, jobid)
  
-    ############################
-
-    # S3/storage utility methods
-
-    def _upload_file_to_s3(self, file_path, s3_path):
-        s3_bucket, s3_key = self._parse_s3_uri(s3_path)
-        conn = S3Connection(os.environ['AWS_ACCESS_KEY_ID'], os.environ['AWS_SECRET_ACCESS_KEY'])
-        bkt = conn.get_bucket(s3_bucket)
-        k = Key(bkt)
-        k.key = s3_key
-        k.set_contents_from_filename(file_path)       
-    
-    def _parse_s3_uri(self,uri):
-        """Parse the uri from the for: s3://bucketname/some/other/path/info/
-        to: 
-            bucket = bucketname
-            key = some/other/path/info
-        """
-        m = re.search(r'(s3://)([A-Za-z0-9_-]+)/(\S*)', uri)
-        if m:
-            return (m.group(2),m.group(3))
-        else:
-            return None
-  
 
     # ############################
     # cribbed from mrjob

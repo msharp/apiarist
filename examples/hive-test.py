@@ -1,13 +1,13 @@
 import sys
 import os
-sys.path.append('Users/max/Code/apiarist/apiarist')
+#sys.path.append('Users/max/Code/apiarist/apiarist')
 
-from apiarist.hive import HiveJob, HiveQuery
+from apiarist.job import HiveJob
 
 # temp dir ??
-os.environ['S3_BASE_PATH']          = 's3://test/hive/'
+os.environ['S3_BASE_PATH']          = 's3://hivetests/scratch/'
 os.environ['APIARIST_TMP_DIR']      = '/Users/max/Code/apiarist/temp/'
-os.environ["CSV_SERDE_JAR_S3"]      = 's3://test/hive/jars/csv-serde-1.1.2-0.11.0-all.jar'
+os.environ["CSV_SERDE_JAR_S3"]      = 's3://hivetests/jars/csv-serde-1.1.2-0.11.0-all.jar'
 os.environ['AWS_ACCESS_KEY_ID']     = ''
 os.environ['AWS_SECRET_ACCESS_KEY'] = ''
 
@@ -35,6 +35,6 @@ class EmailRecipientsSummary(HiveJob):
  
 
 if __name__ == "__main__":
-    EmailRecipientsSummary().run('s3://test/hive/data/emails-sent-by-date.csv')
+    EmailRecipientsSummary().run('s3://hivetests/data/emails-sent-by-date.csv')
 
         

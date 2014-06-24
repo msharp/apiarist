@@ -78,6 +78,8 @@ class HiveQuery(object):
         return "\n".join(parts)
 
     def _create_table_ddl(self, name, columns, location):
+        """Create a Hive table to store CSV data
+        """
         return [
             "CREATE EXTERNAL TABLE {0} ({1})".format(name, self._column_ddl(columns)), 
             "ROW FORMAT serde 'com.bizo.hive.serde.csv.CSVSerde'",
