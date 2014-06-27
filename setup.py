@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 try:
     from setuptools import setup
     # arguments that distutils doesn't understand
@@ -44,7 +45,7 @@ setup(
     ],
     description='Python Hive query framework',
     license='Apache',
-    long_description=open('README.md').read(),
+    long_description=open(os.path.abspath(os.path.join(os.path.dirname(__file__),'README.md'))).read(),
     name='apiarist',
     packages=[
         'apiarist'
