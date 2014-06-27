@@ -47,9 +47,7 @@ setup(
     long_description=open('README.md').read(),
     name='apiarist',
     packages=[
-        'apiarist',
-        'apiarist.script',
-        'apiarist.job',
+        'apiarist'
     ],
     url='http://github.com/msharp/apiarist',
     version=apiarist.__version__,

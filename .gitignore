@@ -4,3 +4,5 @@
 *.log
 temp/*
 metastore_db/*
+apiarist.egg-info/*
+dist/*
