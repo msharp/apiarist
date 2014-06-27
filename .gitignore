@@ -1,2 +1,6 @@
+*-test.py
 *.pyc
 .DS_Store
+*.log
+temp/*
+metastore_db/*
