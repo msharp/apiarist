@@ -101,10 +101,12 @@ class HiveJob(object):
         conn.add_jobflow_steps(jobid, [setup_step, run_step])
 
         self._wait_for_job_to_complete(conn, jobid)
+
+        print("Output file is in: {0}".format(self.output_path))
  
 
     # ############################
-    # cribbed from mrjob
+    # wait method extracted from mrjob
     # ###########################
         
     # wait for job and log status (from mrjob)
@@ -179,7 +181,7 @@ class HiveJob(object):
 
             # otherwise, we can print a status message
             if running_step_name:
-                print("Job launched {0} ago, status {1}: {2} ({3})".format(running_time, job_state, reason, running_step_name))
+                print("Job launched {0} ago, status {1}: {2} ({3})".format(int(running_time), job_state, reason, running_step_name))
 
                 #if self._show_tracker_progress:
                 #    try:
@@ -249,7 +251,6 @@ SUBSECOND_RE = re.compile('\.[0-9]+')
 
 # Thu, 29 Mar 2012 04:55:44 GMT
 RFC1123 = '%a, %d %b %Y %H:%M:%S %Z'
-
 
 def iso8601_to_timestamp(iso8601_time):
     iso8601_time = SUBSECOND_RE.sub('', iso8601_time)

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
+from apiarist.s3 import *
 
 class HiveQuery(object):
     """
@@ -50,9 +51,11 @@ class HiveQuery(object):
         try:
             serde = os.environ["CSV_SERDE_JAR_S3"]
         except KeyError:
-            # TODO - ensure the jar is up on S3
-            print("The serde jar in ./jars dir must be put onto S3")
-            raise KeyError
+            # ensure the jar is up on S3
+            jar_loc = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'jars', 'csv-serde-1.1.2-0.11.0-all.jar'))
+            jar_path = os.environ['S3_BASE_PATH'] + 'jars/csv-serde.jar'
+            upload_file_to_s3(jar_loc, jar_path)
+            os.environ["CSV_SERDE_JAR_S3"] = serde = jar_path
         return serde
 
     def emr_hive_script(self, data_source, output_dir, temp_table_dir):
@@ -92,6 +95,6 @@ class HiveQuery(object):
         """
         s = []
         for col in columns:
-            s.append("{0} {1}".format(col[0], col[1])) 
-        return ",".join(s)
+            s.append("`{0}` {1}".format(col[0], col[1])) 
+        return ", ".join(s)
  
