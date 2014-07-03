@@ -35,7 +35,7 @@ class HiveQuery(object):
     def __init__(self, table_name, input_columns, output_columns, query):
         self.table_name         = table_name
         self.results_table_name = table_name + "_results"
-        self.query              = query
+        self.query              = self._parse_query(query)
         self.input_columns      = input_columns
         self.output_columns     = output_columns
         if query[-1:] != ';':
@@ -44,11 +44,15 @@ class HiveQuery(object):
             raise ValueError, "query does not contain a reference to the table"
         # TODO validate the input/output columns for proper data types and reserved keywords
 
+    def __repr__(self):
+        return "HiveQuery:{}...".format(self.query[:80])
+
     def _csv_serde_jar(self):
         """Using a JAR for serialisation/deserialisation in the Hive tables
         """
-        # if it is known on S3
+        # FIXME this method doesn't feel at home here
         try:
+            # known location on S3
             serde = os.environ["CSV_SERDE_JAR_S3"]
         except KeyError:
             # ensure the jar is up on S3
@@ -57,6 +61,10 @@ class HiveQuery(object):
             upload_file_to_s3(jar_loc, jar_path)
             os.environ["CSV_SERDE_JAR_S3"] = serde = jar_path
         return serde
+
+    def _parse_query(self, query):
+        """Condense spaces"""
+        return re.sub(r"\s+"," ",query)
 
     def emr_hive_script(self, data_source, output_dir, temp_table_dir):
         """Generate the complete Hive script for EMR
@@ -93,8 +101,6 @@ class HiveQuery(object):
     def _column_ddl(self, columns):
         """Get column defintions for Hive table
         """
-        s = []
-        for col in columns:
-            s.append("`{0}` {1}".format(col[0], col[1])) 
-        return ", ".join(s)
+        cols = ["`{0}` {1}".format(col[0], col[1]) for col in columns]
+        return ", ".join(cols)
  

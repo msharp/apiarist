@@ -30,6 +30,7 @@ log = logging.getLogger(__name__)
 # TODO - add EMRRunnerOptionStore class 
 
 class EMRRunner():
+
     def __init__(self, job_name=None, input_path=None, hive_query=None,
             output_dir=None, scratch_dir=None, log_path=None,    
             action_on_failure=None,  ami_version=None, hive_version=None, 
@@ -132,11 +133,9 @@ class EMRRunner():
         # TODO _ remove scratch dirs?
         print "cleaning up ... "
 
-    # ############################
-    # wait method extracted from mrjob
-    # ###########################
         
     # wait for job and log status (from mrjob)
+    # this method extracted from mrjob.job
     def _wait_for_job_to_complete(self, conn, jobid):
         """Wait for the job to complete, and raise an exception if
         the job failed.
@@ -150,7 +149,7 @@ class EMRRunner():
 
         while True:
             # don't antagonize EMR's throttling
-            print('Waiting %.1f seconds...' % opts['check_emr_status_every'])
+            print('Waiting {0} seconds...'.format(opts['check_emr_status_every']))
             time.sleep(opts['check_emr_status_every'])
 
             job_flow = conn.describe_jobflow(jobid)
@@ -233,35 +232,31 @@ class EMRRunner():
 
             # other states include STARTING and SHUTTING_DOWN
             elif reason:
-                print("Job launched {0} ago, status {1}: {2}".format(running_time, job_state, reason))
+                print("Job launched {0} ago, status {1}: {2}".format(int(running_time), job_state, reason))
             else:
-                print("Job launched {0} ago, status {1}".format(running_time, job_state))
+                print("Job launched {0} ago, status {1}".format(int(running_time), job_state))
 
         if success:
             print('Job completed.')
             print("Running time was {0} (not counting time spent waiting for the EC2 instances)".format(total_step_time))
-            #self._fetch_counters(step_nums, lg_step_num_mapping)
-            #self.print_counters(range(1, len(step_nums) + 1))
         else:
-            msg = 'Job on job flow %s failed with status %s: %s' % (
-                job_flow.jobflowid, job_state, reason)
+            msg = 'Job on job flow {0} failed with status {1}: {2}'.format(job_flow.jobflowid, job_state, reason)
             print(msg)
+
+            cause = False
+            # TODO resurrect this code to recover reason for failure
             #if self._s3_job_log_uri:
             #    print('Logs are in %s' % self._s3_job_log_uri)
             # look for a Python traceback
             #cause = self._find_probable_cause_of_failure(
-            cause = False
-            #    step_nums, sorted(lg_step_num_mapping.values()))
+            
             if cause:
                 # log cause, and put it in exception
                 cause_msg = []  # lines to log and put in exception
-                cause_msg.append('Probable cause of failure (from %s):' %
-                                 cause['log_file_uri'])
+                cause_msg.append('Probable cause of failure (from {0}):'.format(cause['log_file_uri']))
                 cause_msg.extend(line.strip('\n') for line in cause['lines'])
                 if cause['input_uri']:
-                    cause_msg.append('(while reading from %s)' %
-                                     cause['input_uri'])
-
+                    cause_msg.append('(while reading from {0})'.format(cause['input_uri']))
                 for line in cause_msg:
                     print(line)
 

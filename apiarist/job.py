@@ -41,6 +41,8 @@ class HiveJob(HiveJobLauncher):
         hive_job = cls(args=_READ_ARGS_FROM_SYS_ARGV)
         hive_job.execute()
 
+    ## methods which define the query logic and I/O ##
+
     def input_columns(self):
         """Create this in your HiveJob subclass"""
         raise NotImplementedError
