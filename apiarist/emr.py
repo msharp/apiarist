@@ -43,6 +43,9 @@ class EMRRunner():
         # I/O for job data
         self.input_path = input_path
         self.output_dir = output_dir
+            
+        # is the input multiple files in a 'directory'?
+        self.input_is_dir = is_dir(input_path)
 
         # the Hive script object
         self.hive_query = hive_query
@@ -58,6 +61,8 @@ class EMRRunner():
         self.base_path      = scratch_dir or os.environ['S3_BASE_PATH']
         self.output_path    = self.base_path + self.job_id + '/output/' 
         self.data_path      = self.base_path + self.job_id + '/data'
+        if self.input_is_dir:
+            self.data_path += '/'
         self.table_path     = self.base_path + self.job_id + '/tables/' 
         self.script_path    = self.base_path + self.job_id + '/script.hql' 
         self.log_path       = log_path or self.base_path + 'logs/' # allow alternate logging path

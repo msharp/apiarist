@@ -33,6 +33,8 @@ class HiveQuery(object):
             # There are several date functions which operate on strings.
 
     def __init__(self, table_name, input_columns, output_columns, query):
+        """Initalise the query with all the variable properties
+        defined for a HiveJob """
         self.table_name         = table_name
         self.results_table_name = table_name + "_results"
         self.query              = self._parse_query(query)
