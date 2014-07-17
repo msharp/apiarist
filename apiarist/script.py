@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
-from apiarist.s3 import *
+import re
+from apiarist.serde import Serde  
 
 class HiveQuery(object):
     """
@@ -37,12 +38,12 @@ class HiveQuery(object):
         defined for a HiveJob """
         self.table_name         = table_name
         self.results_table_name = table_name + "_results"
-        self.query              = self._parse_query(query)
+        self.query              = self._parse_query(query.strip())
         self.input_columns      = input_columns
         self.output_columns     = output_columns
-        if query[-1:] != ';':
+        if self.query[-1:] != ';':
             raise ValueError, "query must terminate with a semi-colon"
-        if table_name not in query:
+        if self.table_name not in self.query:
             raise ValueError, "query does not contain a reference to the table"
         # TODO validate the input/output columns for proper data types and reserved keywords
 
@@ -52,17 +53,8 @@ class HiveQuery(object):
     def _csv_serde_jar(self):
         """Using a JAR for serialisation/deserialisation in the Hive tables
         """
-        # FIXME this method doesn't feel at home here
-        try:
-            # known location on S3
-            serde = os.environ["CSV_SERDE_JAR_S3"]
-        except KeyError:
-            # ensure the jar is up on S3
-            jar_loc = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'jars', 'csv-serde-1.1.2-0.11.0-all.jar'))
-            jar_path = os.environ['S3_BASE_PATH'] + 'jars/csv-serde.jar'
-            upload_file_to_s3(jar_loc, jar_path)
-            os.environ["CSV_SERDE_JAR_S3"] = serde = jar_path
-        return serde
+        serde = Serde('csv')
+        return serde.s3_path()
 
     def _parse_query(self, query):
         """Condense spaces"""

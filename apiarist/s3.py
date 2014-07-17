@@ -32,12 +32,12 @@ def copy_s3_file(source, destination):
         d_bkt = conn.get_bucket(dest_bucket)
         for i, k in enumerate(get_bucket_list(s_bkt, source_key)):
             new_key = dest_key + str(i)
-            print "copying {0}{1} to {2}{3}".format(source_bucket, k.key, dest_bucket, new_key)
+            # logging.info "copying {0}{1} to {2}{3}".format(source_bucket, k.key, dest_bucket, new_key)
             d_bkt.copy_key(new_key, source_bucket, k.key)
         return destination +'/'
     else:
         bkt = conn.get_bucket(dest_bucket)
-        print "copying {0}{1} to {2}{3}".format(source_bucket, source_key, dest_bucket, dest_key)
+        # logging.info "copying {0}{1} to {2}{3}".format(source_bucket, source_key, dest_bucket, dest_key)
         return bkt.copy_key(dest_key, source_bucket, source_key)
 
 def upload_file_to_s3(file_path, s3_path):
