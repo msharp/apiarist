@@ -22,8 +22,9 @@ from optparse import Option
 from optparse import OptionParser
 
 from apiarist.emr import EMRRunner
+from apiarist.local import LocalRunner
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 # sentinel value; used when running HiveJob as a script
 _READ_ARGS_FROM_SYS_ARGV = '_READ_ARGS_FROM_SYS_ARGV'
@@ -60,15 +61,29 @@ class HiveJobLauncher(object):
         """
         print("Launching job {0}".format(self.job_name))
         # log the options being used
-        print self.emr_job_runner_kwargs()
         # self.set_up_logging(quiet=self.options.quiet, verbose=self.options.verbose, stream=self.stderr)
         with self.make_runner() as runner:
+            print("runner is {}".format(runner))
             runner.run()
 
     def make_runner(self):
         """Make a runner based on arguments provided"""
         # TODO  when we need to make other types of runer (local)
-        return EMRRunner(**self.emr_job_runner_kwargs())
+        if self.options.runner == 'emr':
+            logger.info("Initating EMR runner: {}".format(self.emr_job_runner_kwargs()))
+            return EMRRunner(**self.emr_job_runner_kwargs())
+        else:
+            #logger.info("Initiating local runner: {}".format(self.local_job_runner_kwargs()))
+            print("Initiating local runner: {}".format(self.local_job_runner_kwargs()))
+            return LocalRunner(**self.local_job_runner_kwargs())
+
+    def local_job_runner_kwargs(self):
+        return {
+                'input_path': self.input_data,
+                'output_dir': self.options.output_dir,
+                'hive_query': self.hive_query(),
+                'job_name': self.job_name,
+                }
 
     def emr_job_runner_kwargs(self):
         slave_instance_type = self.options.slave_instance_type
@@ -93,7 +108,11 @@ class HiveJobLauncher(object):
     def configure_options(self):
         """Define the arguments for this script
         """
-        # TODO move EMR-specific options to the emr module
+        # the running mode - local or EMR
+        self.option_parser.add_option(
+                '-r', dest='runner', action='store', default='local'
+                )
+
         # TODO allow YAML config file
         self.option_parser.add_option(
                 '--output-dir', dest='output_dir', action='store', default=False

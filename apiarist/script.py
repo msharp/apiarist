@@ -60,9 +60,32 @@ class HiveQuery(object):
         """Condense spaces"""
         return re.sub(r"\s+"," ",query)
 
+    def local_hive_script(self, data_source, output_dir, temp_table_dir):
+        """generate a hive script to execute on the local hive server
+        generates a CSV file via a hive textfile table
+        """
+        # boilerplate
+        parts = [
+            "ADD JAR {0};".format(Serde('csv').jar), # serde required before attempting drop tables 
+            "DROP TABLE {0};".format(self.table_name),
+            "DROP TABLE {0};".format(self.results_table_name),
+            ]
+       # add the table in which we'll load the source data
+        parts += self._create_table_ddl(self.table_name, self.input_columns, temp_table_dir)
+        # add statement to load the source data into this table
+        parts.append("LOAD DATA INPATH '{0}' INTO TABLE {1};".format(data_source, self.table_name)) 
+        # add a table to select the results into (for CSV formatting)
+        parts += self._create_table_ddl(self.results_table_name, self.output_columns, output_dir)
+        # insert the results of the supplied query into this table
+        parts.append("INSERT INTO TABLE {0} {1}".format(self.results_table_name, self.query))
+        # and finally, the query
+        parts.append(self.query)
+        # return a string that can be written to a file and run on Hive
+        return "\n".join(parts)
+
     def emr_hive_script(self, data_source, output_dir, temp_table_dir):
         """Generate the complete Hive script for EMR
-        outputs a comma-delimited file via a hive textfile table
+        igenerates a set of comma-delimited files via a hive textfile table
         """
         # boilerplate
         parts = [

@@ -59,7 +59,7 @@ class EMRRunner():
 
         # S3 locations
         self.base_path      = scratch_dir or os.environ['S3_BASE_PATH']
-        self.output_path    = self.base_path + self.job_id + '/output/' 
+        self.output_path    = self.output_dir or self.base_path + self.job_id + '/output/' 
         self.data_path      = self.base_path + self.job_id + '/data'
         if self.input_is_dir:
             self.data_path += '/'
