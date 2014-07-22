@@ -51,9 +51,26 @@ if __name__ == "__main__":
 
 ## Try it out
 
+Locally (must have a Hive server available):
+
+    python email_recipients_summary.py -r local /path/to/your/local/file.csv
+
 EMR:
 
-    python email_recipients_summary.py s3://path/to/your/file.csv
+    python email_recipients_summary.py -r emr s3://path/to/your/S3/files/
+
+### Command-line options
+
+Various options can be passed to control the running of the job. In particular the AWS/EMR options.
+
+  - `-r` the run mode. Either `local` or `emr` (default is `local`)
+  - `--output-dir` where the results of the job will go.
+  - `--s3-scratch-uri` the bucket in which all the temporary files can go.
+  - `--ec2-instance-type` the base instance type. Default is `m3.xlarge`
+  - `--ec2-master-instance-type` if you want the master type to be different.
+  - `--num-ec2-instances` number of instances (including the master). Default is `2`.
+  - `--ami-version` the amir version. Default is `latest`.
+  - `--hive-version`. Default is `latest`.
 
 ## License
 
