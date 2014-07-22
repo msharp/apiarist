@@ -107,7 +107,7 @@ class EMRRunner():
     def run(self):
         """Run the Hive job on EMR cluster
         """
-        #  copy the data source to a nuw object
+        #  copy the data source to a new object
         #  (Hive deletes/moves the original)
         copy_s3_file(self.input_path, self.data_path)
 

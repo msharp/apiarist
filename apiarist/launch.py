@@ -64,10 +64,9 @@ class HiveJobLauncher(object):
         print("Launching job {0}".format(self.job_name))
         #  log the options being used
         #  self.set_up_logging(quiet=self.options.quiet,
-        #  verbose=self.options.verbose, stream=self.stderr)
-
+        #                      verbose=self.options.verbose,
+        #                      stream=self.stderr)
         with self.make_runner() as runner:
-            print("runner is {}".format(runner))
             runner.run()
 
     def make_runner(self):

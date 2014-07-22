@@ -17,6 +17,7 @@ import os
 import subprocess
 import hashlib
 import time
+import shutil
 import logging
 
 logger = logging.getLogger(__name__)
@@ -38,28 +39,38 @@ class LocalRunner():
 
         # I/O for job data
         tmp_path = os.environ['APIARIST_TMP_DIR'] + self.job_id
+        self.data_path = tmp_path + '.data'
+        self.table_path = tmp_path + '-table'
         self.input_path = os.path.abspath(input_path)
-        self.output_dir = output_dir + self.job_id + '.csv'
-        self.table_path = tmp_path + '.table'
+        if output_dir:
+            self.output_dir = os.path.abspath(output_dir) + '/' + self.job_id
+        else:
+            self.output_dir = tmp_path + '-output'
 
         # the Hive script object
         self.hive_query = hive_query
-        print self.hive_query.local_hive_script(self.input_path,
-                                                self.output_dir,
-                                                self.table_path)
         self.local_script_file = tmp_path + '.hql'
+        # print self.hive_query.local_hive_script(self.data_path,
+        #                                        self.output_dir,
+        #                                        self.table_path)
 
     def run(self):
         """Run the hive query against a local hive installation (*nix only)
         """
+        # prepare files
+        self._copy_input_data()
         self._generate_hive_script()
+        # execute against hive server
         cmd = ["hive -f {}".format(self.local_script_file)]
         print "running HIVE script with: {}".format(cmd)
         hql = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
         stdout = hql.communicate()
         logger.info(stdout)
-
+        # observe and report
         self._wait_for_job_to_complete()
+
+    def _copy_input_data(self):
+        shutil.copyfile(self.input_path, self.data_path)
 
     def _wait_for_job_to_complete(self):
         # TODO - wait until there are files in this dir
@@ -67,12 +78,13 @@ class LocalRunner():
         cat = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                stderr=subprocess.STDOUT, shell=True)
         stdout, stderr = cat.communicate()
+        print("\nQuery output ------->\n")
         print stdout  # query results
 
     def _generate_hive_script(self):
         """Write the HQL to a local (temp) file
         """
-        hq = self.hive_query.local_hive_script(self.input_path,
+        hq = self.hive_query.local_hive_script(self.data_path,
                                                self.output_dir,
                                                self.table_path)
         f = open(self.local_script_file, 'w')
@@ -100,4 +112,4 @@ class LocalRunner():
 
     def cleanup(self):
         # TODO _ remove scratch dirs?
-        print "cleaning up ... "
+        pass
