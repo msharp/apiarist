@@ -1,5 +1,5 @@
 # Copyright 2014 Max Sharples
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -17,25 +17,26 @@ import os
 import hashlib
 import re
 import time
+import datetime
 import logging
 
 import boto
 from boto.emr.step import HiveStep
 from boto.emr.step import InstallHiveStep
 from boto.emr.connection import EmrConnection
-from apiarist.s3 import *
+from apiarist.s3 import copy_s3_file, is_dir, upload_file_to_s3
 
 log = logging.getLogger(__name__)
 
-# TODO - add EMRRunnerOptionStore class 
 
 class EMRRunner():
 
     def __init__(self, job_name=None, input_path=None, hive_query=None,
-            output_dir=None, scratch_dir=None, log_path=None,    
-            action_on_failure=None,  ami_version=None, hive_version=None, 
-            master_instance_type=None, slave_instance_type=None, num_instances=None ):
-        
+                 output_dir=None, scratch_dir=None, log_path=None,
+                 action_on_failure=None,  ami_version=None, hive_version=None,
+                 master_instance_type=None, slave_instance_type=None,
+                 num_instances=None):
+
         self.job_name = job_name
         self.job_id = self._generate_job_id()
         self.start_time = time.time()
@@ -43,52 +44,57 @@ class EMRRunner():
         # I/O for job data
         self.input_path = input_path
         self.output_dir = output_dir
-            
+
         # is the input multiple files in a 'directory'?
         self.input_is_dir = is_dir(input_path)
 
         # the Hive script object
         self.hive_query = hive_query
 
-        # EMR options
-        self.master_instance_type = master_instance_type  
-        self.slave_instance_type = slave_instance_type  
-        self.ami_version = ami_version 
-        self.hive_version = hive_version 
+        #  EMR options
+        #  TODO ? add EMRRunnerOptionStore class
+        self.master_instance_type = master_instance_type
+        self.slave_instance_type = slave_instance_type
+        self.ami_version = ami_version
+        self.hive_version = hive_version
         self.num_instances = num_instances
 
         # S3 locations
-        self.base_path      = scratch_dir or os.environ['S3_BASE_PATH']
-        self.output_path    = self.output_dir or self.base_path + self.job_id + '/output/' 
-        self.data_path      = self.base_path + self.job_id + '/data'
+        self.base_path = scratch_dir or os.environ['S3_BASE_PATH']
+        self.output_path = self.output_dir or \
+            self.base_path + self.job_id + '/output/'
+        self.data_path = self.base_path + self.job_id + '/data'
         if self.input_is_dir:
             self.data_path += '/'
-        self.table_path     = self.base_path + self.job_id + '/tables/' 
-        self.script_path    = self.base_path + self.job_id + '/script.hql' 
-        self.log_path       = log_path or self.base_path + 'logs/' # allow alternate logging path
+        self.table_path = self.base_path + self.job_id + '/tables/'
+        self.script_path = self.base_path + self.job_id + '/script.hql'
+        #  allow alternate logging path
+        self.log_path = log_path or self.base_path + 'logs/'
 
-        self.local_script_file = os.environ['APIARIST_TMP_DIR'] + self.job_id +'.hql'
-    
+        tmp_dir = os.environ['APIARIST_TMP_DIR'] + self.job_id
+        self.local_script_file = tmp_dir + '.hql'
+
     def _generate_hive_script(self, data_source):
         """Write the HQL to a local (temp) file
         """
-        hq = self.hive_query.emr_hive_script(data_source, self.output_path, self.table_path)
-        f = open(self.local_script_file,'w')
+        hq = self.hive_query.emr_hive_script(data_source, self.output_path,
+                                             self.table_path)
+        f = open(self.local_script_file, 'w')
         f.writelines(hq)
         f.close()
-    
+
     def _generate_job_id(self):
         """Create a unique job run identifier
         """
         run_id = self.job_name + str(time.time())
         digest = hashlib.md5(run_id).hexdigest()
         return 'hj-' + digest
-   
+
     def _generate_and_upload_hive_script(self):
         self._generate_hive_script(self.data_path)
         upload_file_to_s3(self.local_script_file, self.script_path)
 
-    ### hooks for the with statement ###
+    #  hooks for the with statement ###
 
     def __enter__(self):
         """Don't do anything special at start of with block"""
@@ -101,7 +107,8 @@ class EMRRunner():
     def run(self):
         """Run the Hive job on EMR cluster
         """
-        # copy the data source to a nuw object (Hive deletes/moves the original)
+        #  copy the data source to a nuw object
+        #  (Hive deletes/moves the original)
         copy_s3_file(self.input_path, self.data_path)
 
         # and create the hive script
@@ -110,35 +117,33 @@ class EMRRunner():
         print("Waiting 5s for S3 eventual consistency")
         time.sleep(5)
 
-        # TODO _ abstract to a HiveJobRunner class
-        #        allow running on EMR or locally (or even on a Hive cluster, perhaps also spark/shark)
-        conn = EmrConnection(os.environ['AWS_ACCESS_KEY_ID'], os.environ['AWS_SECRET_ACCESS_KEY'])
+        conn = EmrConnection(os.environ['AWS_ACCESS_KEY_ID'],
+                             os.environ['AWS_SECRET_ACCESS_KEY'])
 
         setup_step = InstallHiveStep(self.hive_version)
         run_step = HiveStep(self.job_name, self.script_path)
 
         jobid = conn.run_jobflow(
-                            self.job_name,
-                            self.log_path,
-                            action_on_failure='CANCEL_AND_WAIT',
-                            master_instance_type=self.master_instance_type,
-                            slave_instance_type=self.slave_instance_type,
-                            ami_version=self.ami_version,
-                            num_instances=self.num_instances)
+            self.job_name,
+            self.log_path,
+            action_on_failure='CANCEL_AND_WAIT',
+            master_instance_type=self.master_instance_type,
+            slave_instance_type=self.slave_instance_type,
+            ami_version=self.ami_version,
+            num_instances=self.num_instances)
 
         conn.add_jobflow_steps(jobid, [setup_step, run_step])
 
         self._wait_for_job_to_complete(conn, jobid)
 
-        # TODO move file to specified out put dir (if provided) 
+        # TODO move file to specified out put dir (if provided)
 
         print("Output file is in: {0}".format(self.output_path))
-  
+
     def cleanup(self):
         # TODO _ remove scratch dirs?
         print "cleaning up ... "
 
-        
     # wait for job and log status (from mrjob)
     # this method extracted from mrjob.job
     def _wait_for_job_to_complete(self, conn, jobid):
@@ -149,12 +154,12 @@ class EMRRunner():
         """
         success = False
         opts = {'check_emr_status_every': 30}
-        s3_logs = self.log_path
+        # s3_logs = self.log_path
         emr_job_start = self.start_time
 
         while True:
             # don't antagonize EMR's throttling
-            print('Waiting {0} seconds...'.format(opts['check_emr_status_every']))
+            print('Waiting {0} seconds'.format(opts['check_emr_status_every']))
             time.sleep(opts['check_emr_status_every'])
 
             job_flow = conn.describe_jobflow(jobid)
@@ -167,12 +172,13 @@ class EMRRunner():
             running_step_name = ''
             total_step_time = 0.0
             step_nums = []  # step numbers belonging to us. 1-indexed
-            lg_step_num_mapping = {}
+            # lg_step_num_mapping = {}
 
             steps = job_flow.steps or []
-            latest_lg_step_num = 0
+            # latest_lg_step_num = 0
             for i, step in enumerate(steps):
-                #if LOG_GENERATING_STEP_NAME_RE.match(posixpath.basename(getattr(step, 'jar', ''))):
+                # if LOG_GENERATING_STEP_NAME_RE.match(
+                # posixpath.basename(getattr(step, 'jar', ''))):
                 #    latest_lg_step_num += 1
 
                 # ignore steps belonging to other jobs
@@ -180,7 +186,8 @@ class EMRRunner():
                     continue
 
                 step_nums.append(i + 1)
-                #if LOG_GENERATING_STEP_NAME_RE.match(posixpath.basename(getattr(step, 'jar', ''))):
+                # if LOG_GENERATING_STEP_NAME_RE.match(
+                # posixpath.basename(getattr(step, 'jar', ''))):
                 #    lg_step_num_mapping[i + 1] = latest_lg_step_num
 
                 step.state = step.state
@@ -188,7 +195,9 @@ class EMRRunner():
                 if step.state == 'RUNNING':
                     running_step_name = step.name
 
-                if (hasattr(step, 'startdatetime') and hasattr(step, 'enddatetime')):
+                if hasattr(step, 'startdatetime') and \
+                   hasattr(step, 'enddatetime'):
+
                     start_time = iso8601_to_timestamp(step.startdatetime)
                     end_time = iso8601_to_timestamp(step.enddatetime)
                     total_step_time += end_time - start_time
@@ -212,9 +221,10 @@ class EMRRunner():
 
             # otherwise, we can print a status message
             if running_step_name:
-                print("Job launched {0} ago, status {1}: {2} ({3})".format(int(running_time), job_state, reason, running_step_name))
+                print("Job launched {0} ago, status {1}: {2} ({3})".format(
+                    int(running_time), job_state, reason, running_step_name))
 
-                #if self._show_tracker_progress:
+                # if self._show_tracker_progress:
                 #    try:
                 #        tracker_handle = urllib2.urlopen(self._tracker_url)
                 #        tracker_page = ''.join(tracker_handle.readlines())
@@ -231,37 +241,43 @@ class EMRRunner():
                 #        self._show_tracker_progress = False
                 # once a step is running, it's safe to set up the ssh tunnel to
                 # the job tracker
-                #job_host = getattr(job_flow, 'masterpublicdnsname', None)
-                #if job_host and opts['ssh_tunnel_to_job_tracker']:
+                # job_host = getattr(job_flow, 'masterpublicdnsname', None)
+                # if job_host and opts['ssh_tunnel_to_job_tracker']:
                 #    self.setup_ssh_tunnel_to_job_tracker(job_host)
 
             # other states include STARTING and SHUTTING_DOWN
             elif reason:
-                print("Job launched {0} ago, status {1}: {2}".format(int(running_time), job_state, reason))
+                print("Job launched {0} ago, status {1}: {2}".format(
+                    int(running_time), job_state, reason))
             else:
-                print("Job launched {0} ago, status {1}".format(int(running_time), job_state))
+                print("Job launched {0} ago, status {1}".format(
+                    int(running_time), job_state))
 
         if success:
             print('Job completed.')
-            print("Running time was {0} (not counting time spent waiting for the EC2 instances)".format(total_step_time))
+            print("Running time was {0} (not counting time spent waiting " +
+                  "for the EC2 instances)".format(total_step_time))
         else:
-            msg = 'Job on job flow {0} failed with status {1}: {2}'.format(job_flow.jobflowid, job_state, reason)
+            msg = 'Job on job flow {0} failed with status {1}: {2}'.format(
+                  job_flow.jobflowid, job_state, reason)
             print(msg)
 
             cause = False
             # TODO resurrect this code to recover reason for failure
-            #if self._s3_job_log_uri:
+            # if self._s3_job_log_uri:
             #    print('Logs are in %s' % self._s3_job_log_uri)
             # look for a Python traceback
-            #cause = self._find_probable_cause_of_failure(
-            
+            # cause = self._find_probable_cause_of_failure(
+
             if cause:
                 # log cause, and put it in exception
                 cause_msg = []  # lines to log and put in exception
-                cause_msg.append('Probable cause of failure (from {0}):'.format(cause['log_file_uri']))
+                cause_msg.append('Probable cause of failure (from {0}):'.format
+                                 (cause['log_file_uri']))
                 cause_msg.extend(line.strip('\n') for line in cause['lines'])
                 if cause['input_uri']:
-                    cause_msg.append('(while reading from {0})'.format(cause['input_uri']))
+                    cause_msg.append('(while reading from {0})'.format(
+                                     cause['input_uri']))
                 for line in cause_msg:
                     print(line)
 
@@ -270,7 +286,7 @@ class EMRRunner():
 
             raise Exception(msg)
 
-### AWS Date-time parsing ###
+#  AWS Date-time parsing
 
 # sometimes AWS gives us seconds as a decimal, which we can't parse
 # with boto.utils.ISO8601
@@ -279,6 +295,7 @@ SUBSECOND_RE = re.compile('\.[0-9]+')
 # Thu, 29 Mar 2012 04:55:44 GMT
 RFC1123 = '%a, %d %b %Y %H:%M:%S %Z'
 
+
 def iso8601_to_timestamp(iso8601_time):
     iso8601_time = SUBSECOND_RE.sub('', iso8601_time)
     try:
@@ -286,10 +303,10 @@ def iso8601_to_timestamp(iso8601_time):
     except ValueError:
         return time.mktime(time.strptime(iso8601_time, RFC1123))
 
+
 def iso8601_to_datetime(iso8601_time):
     iso8601_time = SUBSECOND_RE.sub('', iso8601_time)
     try:
         return datetime.strptime(iso8601_time, boto.utils.ISO8601)
     except ValueError:
         return datetime.strptime(iso8601_time, RFC1123)
-

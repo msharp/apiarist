@@ -1,18 +1,19 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import sys, os
 import unittest
-from apiarist.s3 import *
+from apiarist.s3 import parse_s3_uri
+from apiarist.s3 import obj_type
+from apiarist.s3 import is_dir
+
 
 class SerdeTest(unittest.TestCase):
-    
+
     def parse_s3_uri_test(self):
         s = 's3://foo/bar/baz.csv'
-        b,k = parse_s3_uri(s)
+        b, k = parse_s3_uri(s)
         self.assertEqual(b, 'foo')
         self.assertEqual(k, 'bar/baz.csv')
-        
 
     def obj_type_test(self):
         s = 's3://foo/bar/baz.csv'

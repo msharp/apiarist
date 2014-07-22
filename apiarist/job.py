@@ -1,5 +1,5 @@
 # Copyright 2014 Max Sharples
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -21,6 +21,7 @@ from apiarist.launch import _READ_ARGS_FROM_SYS_ARGV
 
 log = logging.getLogger(__name__)
 
+
 class HiveJob(HiveJobLauncher):
 
     def __init__(self, args=None):
@@ -29,7 +30,8 @@ class HiveJob(HiveJobLauncher):
     def hive_query(self):
         """Get the Hive script object based on provided params
         """
-        return HiveQuery(self.table(), self.input_columns(), self.output_columns(), self.query())
+        return HiveQuery(self.table(), self.input_columns(),
+                         self.output_columns(), self.query())
 
     def _job_name(self):
         return self.__class__.__name__
@@ -41,7 +43,7 @@ class HiveJob(HiveJobLauncher):
         hive_job = cls(args=_READ_ARGS_FROM_SYS_ARGV)
         hive_job.execute()
 
-    ## methods which define the query logic and I/O ##
+    #  methods which define the query logic and I/O
 
     def input_columns(self):
         """Create this in your HiveJob subclass"""

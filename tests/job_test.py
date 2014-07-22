@@ -4,8 +4,9 @@
 import unittest
 from apiarist.job import HiveJob
 
+
 class HiveJobTest(unittest.TestCase):
-    
+
     def this_class_is_a_placeholder_test(self):
         """This class is a shell for creating the actual job logic
         The methods below must be implemented in a subclass
