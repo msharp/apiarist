@@ -4,6 +4,7 @@
 import os
 import unittest
 from apiarist.script import HiveQuery
+from apiarist.serde import Serde
 
 
 class HiveQueryTest(unittest.TestCase):
@@ -36,23 +37,45 @@ class HiveQueryTest(unittest.TestCase):
         data_source = 's3://foo/bar/baz/data/'
         output_dir = 's3://foo/bar/baz/temp/'
         temp_table_dir = 's3://foo/bar/baz/table/'
-        os.environ["CSV_SERDE_JAR_S3"] = 's3://path/to/serde.jar'
-        s = "ADD JAR s3://path/to/serde.jar;\n"
+        serde = os.environ["CSV_SERDE_JAR_S3"] = 's3://path/to/serde.jar'
+        s = "ADD JAR {};\n".format(serde)
         s += "SET hive.exec.compress.output=false;\n"
         s += "CREATE EXTERNAL TABLE some_table (`foo` STRING, `bar` STRING)\n"
         s += "ROW FORMAT serde 'com.bizo.hive.serde.csv.CSVSerde'\n"
-        s += "STORED AS TEXTFILE\nLOCATION 's3://foo/bar/baz/table/';\n"
-        s += "LOAD DATA INPATH 's3://foo/bar/baz/data/' INTO TABLE some_table;"
-        s += "\nCREATE EXTERNAL TABLE some_table_results "
+        s += "STORED AS TEXTFILE\nLOCATION '{}';\n".format(temp_table_dir)
+        s += "LOAD DATA INPATH '{}' ".format(data_source)
+        s += "INTO TABLE some_table;\n"
+        s += "CREATE EXTERNAL TABLE some_table_results "
         s += "(`foo` STRING, `bar` STRING)\n"
         s += "ROW FORMAT serde 'com.bizo.hive.serde.csv.CSVSerde'\n"
-        s += "STORED AS TEXTFILE\nLOCATION 's3://foo/bar/baz/temp/';\n"
-        s += "INSERT INTO TABLE some_table_results SELECT foo, bar "
-        s += "FROM some_table WHERE zero = 0;\n"
+        s += "STORED AS TEXTFILE\nLOCATION '{}';\n".format(output_dir)
+        s += "INSERT INTO TABLE some_table_results\n"
         s += "SELECT foo, bar FROM some_table WHERE zero = 0;"
         self.assertEqual(s, self.hq.emr_hive_script(data_source,
                                                     output_dir,
                                                     temp_table_dir))
+
+    def local_hive_script_test(self):
+        data_source = '/tmp/data'
+        output_dir = '/tmp/out'
+        temp_table_dir = '/tmp/table'
+        serde = Serde('csv').jar
+        s = "ADD JAR {};\n".format(serde)
+        s += "DROP TABLE some_table;\nDROP TABLE some_table_results;\n"
+        s += "CREATE EXTERNAL TABLE some_table (`foo` STRING, `bar` STRING)\n"
+        s += "ROW FORMAT serde 'com.bizo.hive.serde.csv.CSVSerde'\n"
+        s += "STORED AS TEXTFILE\nLOCATION '{}';\n".format(temp_table_dir)
+        s += "LOAD DATA LOCAL INPATH '{}' ".format(data_source)
+        s += "INTO TABLE some_table;\n"
+        s += "CREATE EXTERNAL TABLE some_table_results "
+        s += "(`foo` STRING, `bar` STRING)\n"
+        s += "ROW FORMAT serde 'com.bizo.hive.serde.csv.CSVSerde'\n"
+        s += "STORED AS TEXTFILE\nLOCATION '{}';\n".format(output_dir)
+        s += "INSERT INTO TABLE some_table_results\n"
+        s += "SELECT foo, bar FROM some_table WHERE zero = 0;"
+        self.assertEqual(s, self.hq.local_hive_script(data_source,
+                                                      output_dir,
+                                                      temp_table_dir))
 
     def column_ddl_test(self):
         cols = [('foo', 'INT'), ('bar', 'STRING')]

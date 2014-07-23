@@ -77,13 +77,13 @@ class HiveQuery(object):
         parts += self._create_table_ddl(self.table_name, self.input_columns,
                                         temp_table_dir)
         #  add statement to load the source data into this table
-        parts.append("LOAD DATA INPATH '{0}' INTO TABLE {1};".format(
+        parts.append("LOAD DATA LOCAL INPATH '{0}' INTO TABLE {1};".format(
             data_source, self.table_name))
         #  add a table to select the results into (for CSV formatting)
         parts += self._create_table_ddl(self.results_table_name,
                                         self.output_columns, output_dir)
         #  insert the results of the supplied query into this table
-        parts.append("INSERT INTO TABLE {0} {1}".format(
+        parts.append("INSERT INTO TABLE {0}".format(
             self.results_table_name, self.query))
         #  and finally, the query
         parts.append(self.query)
@@ -109,8 +109,7 @@ class HiveQuery(object):
         parts += self._create_table_ddl(self.results_table_name,
                                         self.output_columns, output_dir)
         # insert the results of the supplied query into this table
-        parts.append("INSERT INTO TABLE {0} {1}".format(
-            self.results_table_name, self.query))
+        parts.append("INSERT INTO TABLE {0}".format(self.results_table_name))
         # and finally, the query
         parts.append(self.query)
         # return a string that can be written to a file and run on Hive
