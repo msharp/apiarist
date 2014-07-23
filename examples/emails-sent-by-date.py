@@ -1,12 +1,12 @@
 import os
 import sys
-apiarist_dir = os.path.join(__file__, '..')
+apiarist_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(apiarist_dir)
 from apiarist.job import HiveJob
 
 # temp dir ??
-tmp_dir = os.path.join(__file__, '..', 'temp')
-os.environ['APIARIST_TMP_DIR'] = tmp_dir
+tmp_dir = os.path.join(apiarist_dir, 'temp')
+os.environ['APIARIST_TMP_DIR'] = tmp_dir + '/'
 os.environ['S3_BASE_PATH'] = 's3://hivetests/scratch/'
 os.environ['AWS_ACCESS_KEY_ID'] = ''
 os.environ['AWS_SECRET_ACCESS_KEY'] = ''

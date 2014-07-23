@@ -30,6 +30,10 @@ logger = logging.getLogger(__name__)
 _READ_ARGS_FROM_SYS_ARGV = '_READ_ARGS_FROM_SYS_ARGV'
 
 
+class ArgumentMissingError(Exception):
+    pass
+
+
 class HiveJobLauncher(object):
 
     OPTION_CLASS = Option
@@ -56,7 +60,10 @@ class HiveJobLauncher(object):
 
         #  after named args are removed,
         #  only remaining arg is the source of data
-        self.input_data = args[0]
+        try:
+            self.input_data = args[0]
+        except IndexError:
+            raise ArgumentMissingError("must provide path to source data")
 
     def execute(self):
         """Run the job

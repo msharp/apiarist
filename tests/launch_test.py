@@ -3,6 +3,7 @@
 
 import unittest
 from apiarist.launch import HiveJobLauncher
+from apiarist.launch import ArgumentMissingError
 
 
 class HiveJobLauncherTest(unittest.TestCase):
@@ -12,6 +13,10 @@ class HiveJobLauncherTest(unittest.TestCase):
     def supply_path_to_data_test(self):
         j = HiveJobLauncher('TestJob', [self.DATA_PATH])
         self.assertEqual(self.DATA_PATH, j.input_data)
+
+    def supply_path_to_data_error_test(self):
+        self.assertRaises(ArgumentMissingError, HiveJobLauncher,
+                          ('TestJob', []))
 
     def supply_output_dir_test(self):
         d = 's3://path/to/ouput-data/'
