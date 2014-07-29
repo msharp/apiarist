@@ -26,7 +26,7 @@ from boto.emr.step import InstallHiveStep
 from boto.emr.connection import EmrConnection
 from apiarist.s3 import copy_s3_file, is_dir, upload_file_to_s3
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class EMRRunner():
@@ -40,6 +40,9 @@ class EMRRunner():
         self.job_name = job_name
         self.job_id = self._generate_job_id()
         self.start_time = time.time()
+
+        logger.info("JobID {0}, started at {1}".format(self.job_id,
+                                                       self.start_time))
 
         # I/O for job data
         self.input_path = input_path
@@ -114,7 +117,7 @@ class EMRRunner():
         # and create the hive script
         self._generate_and_upload_hive_script()
 
-        print("Waiting 5s for S3 eventual consistency")
+        logger.info("Waiting 5s for S3 eventual consistency")
         time.sleep(5)
 
         conn = EmrConnection(os.environ['AWS_ACCESS_KEY_ID'],
@@ -138,11 +141,11 @@ class EMRRunner():
 
         # TODO move file to specified out put dir (if provided)
 
-        print("Output file is in: {0}".format(self.output_path))
+        logger.info("Output file is in: {0}".format(self.output_path))
 
     def cleanup(self):
         # TODO _ remove scratch dirs?
-        print "cleaning up ... "
+        logger.info("cleaning up ... ")
 
     # wait for job and log status (from mrjob)
     # this method extracted from mrjob.job
@@ -153,14 +156,15 @@ class EMRRunner():
         Also grab log URI from the job status (since we may not know it)
         """
         success = False
-        opts = {'check_emr_status_every': 30}
+        chk_status_freq = 30
+        # opts = {'check_emr_status_every': 30}
         # s3_logs = self.log_path
         emr_job_start = self.start_time
 
         while True:
             # don't antagonize EMR's throttling
-            print('Waiting {0} seconds'.format(opts['check_emr_status_every']))
-            time.sleep(opts['check_emr_status_every'])
+            logger.info('Waiting {0} seconds'.format(chk_status_freq))
+            time.sleep(chk_status_freq)
 
             job_flow = conn.describe_jobflow(jobid)
 
@@ -221,8 +225,9 @@ class EMRRunner():
 
             # otherwise, we can print a status message
             if running_step_name:
-                print("Job launched {0} ago, status {1}: {2} ({3})".format(
-                    int(running_time), job_state, reason, running_step_name))
+                logger.info("Job launched {0} ago, status {1}: {2} ({3})".
+                            format(int(running_time), job_state, reason,
+                                   running_step_name))
 
                 # if self._show_tracker_progress:
                 #    try:
@@ -233,10 +238,10 @@ class EMRRunner():
                 #        map_complete, reduce_complete = [
                 #            float(complete) for complete
                 #            in JOB_TRACKER_RE.findall(tracker_page)[:2]]
-                #        print(' map %3d%% reduce %3d%%' % (
+                #        logger.info(' map %3d%% reduce %3d%%' % (
                 #                 map_complete, reduce_complete))
                 #    except:
-                #        print('Unable to load progress from job tracker')
+                #       logger.info('Unable to load progress from job tracker')
                 #        # turn off progress for rest of job
                 #        self._show_tracker_progress = False
                 # once a step is running, it's safe to set up the ssh tunnel to
@@ -247,25 +252,25 @@ class EMRRunner():
 
             # other states include STARTING and SHUTTING_DOWN
             elif reason:
-                print("Job launched {0} ago, status {1}: {2}".format(
+                logger.info("Job launched {0} ago, status {1}: {2}".format(
                     int(running_time), job_state, reason))
             else:
-                print("Job launched {0} ago, status {1}".format(
+                logger.info("Job launched {0} ago, status {1}".format(
                     int(running_time), job_state))
 
         if success:
-            print('Job completed.')
-            print("Running time was {0} (not counting time spent waiting " +
-                  "for the EC2 instances)".format(total_step_time))
+            logger.info('Job completed.')
+            logger.info("Running time was {0}".format(total_step_time))
+            logger.info("(excludes time spent waiting for the EC2 instances)")
         else:
             msg = 'Job on job flow {0} failed with status {1}: {2}'.format(
                   job_flow.jobflowid, job_state, reason)
-            print(msg)
+            logger.info(msg)
 
             cause = False
             # TODO resurrect this code to recover reason for failure
             # if self._s3_job_log_uri:
-            #    print('Logs are in %s' % self._s3_job_log_uri)
+            #    logger.info('Logs are in %s' % self._s3_job_log_uri)
             # look for a Python traceback
             # cause = self._find_probable_cause_of_failure(
 
@@ -279,7 +284,7 @@ class EMRRunner():
                     cause_msg.append('(while reading from {0})'.format(
                                      cause['input_uri']))
                 for line in cause_msg:
-                    print(line)
+                    logger.info(line)
 
                 # add cause_msg to exception message
                 msg += '\n' + '\n'.join(cause_msg) + '\n'

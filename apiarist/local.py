@@ -50,9 +50,6 @@ class LocalRunner():
         # the Hive script object
         self.hive_query = hive_query
         self.local_script_file = tmp_path + '.hql'
-        # print self.hive_query.local_hive_script(self.data_path,
-        #                                        self.output_dir,
-        #                                        self.table_path)
 
     def run(self):
         """Run the hive query against a local hive installation (*nix only)
@@ -62,10 +59,11 @@ class LocalRunner():
         self._generate_hive_script()
         # execute against hive server
         cmd = ["hive -f {}".format(self.local_script_file)]
-        print "running HIVE script with: {}".format(cmd)
+        logger.info("running HIVE script with: {}".format(cmd))
         hql = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
         stdout = hql.communicate()
-        logger.info(stdout)
+        if stdout[1] is not None:
+            logger.info(stdout)
         # observe and report
         self._wait_for_job_to_complete()
 
@@ -78,8 +76,8 @@ class LocalRunner():
         cat = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                stderr=subprocess.STDOUT, shell=True)
         stdout, stderr = cat.communicate()
-        print("\nQuery output ------->\n")
-        print stdout  # query results
+        logger.info("\nQuery output ------->\n")
+        print(stdout)  # query results to STDOUT
 
     def _generate_hive_script(self):
         """Write the HQL to a local (temp) file
@@ -103,7 +101,6 @@ class LocalRunner():
     def __enter__(self):
         """Don't do anything special at start of with block"""
         s = self
-        print s.job_id
         return s
 
     def __exit__(self, type, value, traceback):

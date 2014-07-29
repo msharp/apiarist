@@ -93,27 +93,24 @@ class HiveJobLauncher(object):
     def run_job(self):
         """Run the job
         """
-        print self.options
         self.set_up_logging(quiet=self.options.quiet,
                             verbose=self.options.verbose,
                             stream=self.stderr)
         #  log the options being used
-        print("Launching job {0}".format(self.job_name))
+        logger.info("Launching job {0}".format(self.job_name))
         with self.make_runner() as runner:
             runner.run()
 
     def make_runner(self):
-        """Make a runner based on arguments provided"""
-        # TODO  when we need to make other types of runer (local)
+        """Make a runner based on arguments provided
+        """
         if self.options.runner == 'emr':
             kwargs = self.emr_job_runner_kwargs()
             logger.info("Initating EMR runner: {}".format(kwargs))
             return EMRRunner(**kwargs)
         else:
             kwargs = self.local_job_runner_kwargs()
-            #  logger.info("Initiating local runner: {}".format(
-            #  self.local_job_runner_kwargs()))
-            print("Initiating local runner: {}".format(kwargs))
+            logger.info("Initiating local runner: {}".format(kwargs))
             return LocalRunner(**kwargs)
 
     def local_job_runner_kwargs(self):
