@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import sys
 import unittest
 from apiarist.launch import HiveJobLauncher
 from apiarist.launch import ArgumentMissingError
@@ -15,6 +16,7 @@ class HiveJobLauncherTest(unittest.TestCase):
         self.assertEqual(self.DATA_PATH, j.input_data)
 
     def supply_path_to_data_error_test(self):
+        sys.argv = []  # override argv when passing script arg to nose
         self.assertRaises(ArgumentMissingError, HiveJobLauncher,
                           ('TestJob', []))
 
@@ -62,3 +64,15 @@ class HiveJobLauncherTest(unittest.TestCase):
     def this_class_has_no_query_test(self):
         j = HiveJobLauncher('TestJob', ['s3://path/to/data/'])
         self.assertRaises(NotImplementedError, j.hive_query)
+
+    def has_logging_options_test(self):
+        # default to False
+        j = HiveJobLauncher('TestJob', [self.DATA_PATH])
+        self.assertEqual(False, j.options.quiet)
+        self.assertEqual(False, j.options.verbose)
+        # set quiet
+        j = HiveJobLauncher('TestJob', [self.DATA_PATH, '--quiet'])
+        self.assertTrue(j.options.quiet)
+        # set verbose
+        j = HiveJobLauncher('TestJob', [self.DATA_PATH, '--verbose'])
+        self.assertTrue(j.options.verbose)

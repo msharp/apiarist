@@ -23,6 +23,8 @@ from optparse import OptionParser
 
 from apiarist.emr import EMRRunner
 from apiarist.local import LocalRunner
+from apiarist.util import log_to_null
+from apiarist.util import log_to_stream
 
 logger = logging.getLogger(__name__)
 
@@ -65,14 +67,38 @@ class HiveJobLauncher(object):
         except IndexError:
             raise ArgumentMissingError("must provide path to source data")
 
+        # Make it possible to redirect stdin, stdout, and stderr, for testing
+        # See sandbox(), below.
+        self.stdin = sys.stdin
+        self.stdout = sys.stdout
+        self.stderr = sys.stderr
+
     def execute(self):
+        self.run_job()
+
+    @classmethod
+    def set_up_logging(cls, quiet=False, verbose=False, stream=None):
+        """Set up logging when running from the command line.
+        This will also set up a null log handler for boto, so we don't get
+        warnings if boto tries to log about throttling and whatnot.
+        """
+        if quiet:
+            log_to_null(name='apiarist')
+            log_to_null(name='__main__')
+        else:
+            log_to_stream(name='apiarist', debug=verbose, stream=stream)
+            log_to_stream(name='__main__', debug=verbose, stream=stream)
+        log_to_null(name='boto')
+
+    def run_job(self):
         """Run the job
         """
-        print("Launching job {0}".format(self.job_name))
+        print self.options
+        self.set_up_logging(quiet=self.options.quiet,
+                            verbose=self.options.verbose,
+                            stream=self.stderr)
         #  log the options being used
-        #  self.set_up_logging(quiet=self.options.quiet,
-        #                      verbose=self.options.verbose,
-        #                      stream=self.stderr)
+        print("Launching job {0}".format(self.job_name))
         with self.make_runner() as runner:
             runner.run()
 
@@ -154,6 +180,15 @@ class HiveJobLauncher(object):
         self.option_parser.add_option(
             '--hive-version', dest='hive_version',
             action='store', default='latest'
+            )
+        # logging options
+        self.option_parser.add_option(
+            '--quiet', dest='quiet',
+            action='store_true', default=False
+            )
+        self.option_parser.add_option(
+            '--verbose', dest='verbose',
+            action='store_true', default=False
             )
 
     @classmethod
