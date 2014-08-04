@@ -49,7 +49,7 @@ if __name__ == "__main__":
     EmailRecipientsSummary().run()
 ```
 
-## Try it out
+### Try it out
 
 Locally (must have a Hive server available):
 
@@ -59,7 +59,9 @@ EMR:
 
     python email_recipients_summary.py -r emr s3://path/to/your/S3/files/
 
-### Command-line options
+## Command-line options
+
+Arguments can be passed to jobs on the command line, or programmatically with an array of options. Argument handling uses the [optparse](https://docs.python.org/2/library/optparse.html) module.
 
 Various options can be passed to control the running of the job. In particular the AWS/EMR options.
 
@@ -69,8 +71,31 @@ Various options can be passed to control the running of the job. In particular t
   - `--ec2-instance-type` the base instance type. Default is `m3.xlarge`
   - `--ec2-master-instance-type` if you want the master type to be different.
   - `--num-ec2-instances` number of instances (including the master). Default is `2`.
-  - `--ami-version` the amir version. Default is `latest`.
+  - `--ami-version` the ami version. Default is `latest`.
   - `--hive-version`. Default is `latest`.
+
+### Passing options to your jobs
+
+Jobs can be configured to accept arguments. 
+
+To do this, add the following method to your job class to configutr the options:
+
+    def configure_options(self):
+        super(EmailRecipientsSummary, self).configure_options()
+        self.add_passthrough_option('--year', dest='year')
+
+And then use the option by providing it in the command line arguments, like this:
+
+    python email_recipients_summary.py -r local /path/to/your/local/file.csv --year 2014
+
+Then incorporating it into your HiveQL query like this:
+
+    def query(self):
+        q = "SELECT YEAR(day), weekday, SUM(sent) "
+        q += "FROM emails_sent "
+        q += "WHERE YEAR(day) = {0} ".format(self.options.year)
+        q += "GROUP BY YEAR(day), weekday;"
+        return q
 
 ## License
 

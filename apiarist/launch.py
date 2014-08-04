@@ -46,7 +46,7 @@ class HiveJobLauncher(object):
 
         #  TODO _ allow argument to be passed in
         #  to be used to compose the script (variables/parameters)
-        self.passthrough_options = []
+        self._passthrough_options = []
 
         self.option_parser = OptionParser(usage=self._usage(),
                                           option_class=self.OPTION_CLASS,
@@ -123,8 +123,8 @@ class HiveJobLauncher(object):
 
     def emr_job_runner_kwargs(self):
         slave_instance_type = self.options.slave_instance_type
-        master_instance_type = self.options.master_instance_type or \
-            slave_instance_type
+        master_instance_type = (self.options.master_instance_type or
+                                slave_instance_type)
         return {
             'input_path': self.input_data,
             'output_dir': self.options.output_dir,
@@ -187,6 +187,23 @@ class HiveJobLauncher(object):
             '--verbose', dest='verbose',
             action='store_true', default=False
             )
+
+    def add_passthrough_option(self, *args, **kwargs):
+        """Add a section in the Job to specify options passed to
+        the job to compile the query.
+
+        Override the `configure_options` method in your job.
+
+            def configure_options(self):
+                super(MRYourJob, self).configure_options()
+                self.add_passthrough_option('--start-date',
+                                            default='2013-1-1',
+                                            dest='startdate')
+
+        Your job will now be able to access `self.options.startdate`
+        """
+        pass_opt = self.option_parser.add_option(*args, **kwargs)
+        self._passthrough_options.append(pass_opt)
 
     @classmethod
     def _usage(cls):
