@@ -17,7 +17,7 @@ import logging
 
 from apiarist.launch import HiveJobLauncher
 from apiarist.script import HiveQuery
-from apiarist.launch import _READ_ARGS_FROM_SYS_ARGV
+from apiarist.conf import _READ_ARGS_FROM_SYS_ARGV
 
 log = logging.getLogger(__name__)
 

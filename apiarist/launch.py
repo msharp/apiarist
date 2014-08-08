@@ -17,14 +17,14 @@ import sys
 import logging
 
 from optparse import Option
-#  from optparse import OptionError
-#  from optparse import OptionGroup
+# from optparse import OptionError
+# from optparse import OptionGroup
 from optparse import OptionParser
-
 from apiarist.emr import EMRRunner
 from apiarist.local import LocalRunner
 from apiarist.util import log_to_null
 from apiarist.util import log_to_stream
+from apiarist.conf import process_args
 
 logger = logging.getLogger(__name__)
 
@@ -44,8 +44,8 @@ class HiveJobLauncher(object):
 
         self.job_name = job_name
 
-        #  TODO _ allow argument to be passed in
-        #  to be used to compose the script (variables/parameters)
+        # allow argument to be passed in to be used
+        # to compose the script (variables/parameters)
         self._passthrough_options = []
 
         self.option_parser = OptionParser(usage=self._usage(),
@@ -53,22 +53,19 @@ class HiveJobLauncher(object):
                                           add_help_option=False)
         self.configure_options()
 
-        # arguments provided on command line
-        if args == _READ_ARGS_FROM_SYS_ARGV:
-            self._cl_args = sys.argv[1:]
-            self.options, args = self.option_parser.parse_args(self._cl_args)
-        else:
-            self.options, args = self.option_parser.parse_args(args)
+        # build options from args provided
+        # this may load the yaml config also
+        self.options, rem_args = process_args(self.option_parser, args)
 
-        #  after named args are removed,
-        #  only remaining arg is the source of data
+        #  after named args have been removed by OptionParser
+        #  only remaining argument is the location of input data
         try:
-            self.input_data = args[0]
+            self.input_data = rem_args[0]
         except IndexError:
             raise ArgumentMissingError("must provide path to source data")
 
         # Make it possible to redirect stdin, stdout, and stderr, for testing
-        # See sandbox(), below.
+        # TODO create sandbox()
         self.stdin = sys.stdin
         self.stdout = sys.stdout
         self.stderr = sys.stderr
@@ -149,8 +146,10 @@ class HiveJobLauncher(object):
         self.option_parser.add_option(
             '-r', dest='runner', action='store', default='local'
             )
-
-        # TODO allow YAML config file
+        # allow YAML config file
+        self.option_parser.add_option(
+            '--conf-path', dest='config_path', action='store', default=None
+            )
         self.option_parser.add_option(
             '--output-dir', dest='output_dir', action='store', default=False
             )

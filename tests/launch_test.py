@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import os
 import unittest
 from apiarist.launch import HiveJobLauncher
 from apiarist.launch import ArgumentMissingError
@@ -76,3 +77,21 @@ class HiveJobLauncherTest(unittest.TestCase):
         # set verbose
         j = HiveJobLauncher('TestJob', [self.DATA_PATH, '--verbose'])
         self.assertTrue(j.options.verbose)
+
+    def supply_options_in_config_file_test(self):
+        cf = os.path.join(os.path.dirname(__file__), 'test-config.conf')
+        j = HiveJobLauncher('TestJob', [self.DATA_PATH,
+                                        '-r', 'emr',
+                                        '--conf-path', cf])
+        self.assertEqual(j.options.num_instances, 5)
+        self.assertEqual(j.options.master_instance_type, 'q3.foo')
+        self.assertEqual(j.options.slave_instance_type, 'r6.4xbaz')
+
+    def cli_options_override_config_file_test(self):
+        cf = os.path.join(os.path.dirname(__file__), 'test-config.conf')
+        j = HiveJobLauncher('TestJob', [self.DATA_PATH,
+                                        '-r', 'emr',
+                                        '--conf-path', cf,
+                                        '--num-ec2-instances', 9])
+        self.assertEqual(j.options.num_instances, 9)
+        self.assertEqual(j.options.master_instance_type, 'q3.foo')
