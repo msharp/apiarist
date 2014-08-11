@@ -28,9 +28,6 @@ from apiarist.conf import process_args
 
 logger = logging.getLogger(__name__)
 
-# sentinel value; used when running HiveJob as a script
-_READ_ARGS_FROM_SYS_ARGV = '_READ_ARGS_FROM_SYS_ARGV'
-
 
 class ArgumentMissingError(Exception):
     pass
@@ -126,7 +123,8 @@ class HiveJobLauncher(object):
             'input_path': self.input_data,
             'output_dir': self.options.output_dir,
             'hive_query': self.hive_query(),
-            'scratch_dir': self.options.scratch_dir,
+            'scratch_dir': self.options.scratch_uri,
+            'log_uri': self.options.log_uri,
             'job_name': self.job_name,
             'master_instance_type': master_instance_type,
             'slave_instance_type': slave_instance_type,
@@ -146,17 +144,39 @@ class HiveJobLauncher(object):
         self.option_parser.add_option(
             '-r', dest='runner', action='store', default='local'
             )
+
         # allow YAML config file
         self.option_parser.add_option(
             '--conf-path', dest='config_path', action='store', default=None
             )
+
+        # where will the output files go?
         self.option_parser.add_option(
             '--output-dir', dest='output_dir', action='store', default=False
             )
+
+        # AWS credentials
+        # FIXME use these options when provided (overrides ENV or config file);
         self.option_parser.add_option(
-            '--s3-scratch-uri', dest='scratch_dir',
+            '--aws-access-key-id', dest='aws_access_key_id',
+            action='store', default=None
+        )
+        self.option_parser.add_option(
+            '--aws-secret-access-key', dest='aws_secret_access_key',
+            action='store', default=None
+        )
+
+        # where to put the logs & temp files
+        self.option_parser.add_option(
+            '--s3-log-uri', dest='log_uri',
             action='store', default=False
             )
+        self.option_parser.add_option(
+            '--s3-scratch-uri', dest='scratch_uri',
+            action='store', default=False
+            )
+
+        # hadoop config, job concurrency, and instance sizes
         self.option_parser.add_option(
             '--ec2-master-instance-type', dest='master_instance_type',
             action='store', default=False
@@ -177,6 +197,17 @@ class HiveJobLauncher(object):
             '--hive-version', dest='hive_version',
             action='store', default='latest'
             )
+
+        # job runner options
+        self.option_parser.add_option(
+            '--s3-sync-wait-time', dest='s3_sync_wait_time',
+            action='store', default=5
+        )
+        self.option_parser.add_option(
+            '--check-emr-status-every', dest='check_emr_status_every',
+            action='store', default=30
+        )
+
         # logging options
         self.option_parser.add_option(
             '--quiet', dest='quiet',

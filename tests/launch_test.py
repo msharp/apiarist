@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import os
 import unittest
 from apiarist.launch import HiveJobLauncher
 from apiarist.launch import ArgumentMissingError
+from conf_test import CONFIG_PATH
 
 
 class HiveJobLauncherTest(unittest.TestCase):
@@ -29,7 +29,7 @@ class HiveJobLauncherTest(unittest.TestCase):
     def supply_scratch_uri_test(self):
         d = 's3://path/to/scratch/'
         j = HiveJobLauncher('TestJob', [self.DATA_PATH, '--s3-scratch-uri', d])
-        self.assertEqual(d, j.options.scratch_dir)
+        self.assertEqual(d, j.options.scratch_uri)
 
     def supply_ec2_instance_type_test(self):
         t = 'j3.2xlarge'
@@ -79,19 +79,17 @@ class HiveJobLauncherTest(unittest.TestCase):
         self.assertTrue(j.options.verbose)
 
     def supply_options_in_config_file_test(self):
-        cf = os.path.join(os.path.dirname(__file__), 'test-config.conf')
         j = HiveJobLauncher('TestJob', [self.DATA_PATH,
                                         '-r', 'emr',
-                                        '--conf-path', cf])
+                                        '--conf-path', CONFIG_PATH])
         self.assertEqual(j.options.num_instances, 5)
         self.assertEqual(j.options.master_instance_type, 'q3.foo')
         self.assertEqual(j.options.slave_instance_type, 'r6.4xbaz')
 
     def cli_options_override_config_file_test(self):
-        cf = os.path.join(os.path.dirname(__file__), 'test-config.conf')
         j = HiveJobLauncher('TestJob', [self.DATA_PATH,
                                         '-r', 'emr',
-                                        '--conf-path', cf,
+                                        '--conf-path', CONFIG_PATH,
                                         '--num-ec2-instances', 9])
         self.assertEqual(j.options.num_instances, 9)
         self.assertEqual(j.options.master_instance_type, 'q3.foo')
