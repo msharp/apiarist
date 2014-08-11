@@ -43,7 +43,7 @@ class HiveQuery(object):
         self.input_columns = input_columns
         self.output_columns = output_columns
         if self.query[-1:] != ';':
-            raise ValueError("query must terminate with a semi-colon")
+            self.query += ';'
         if self.table_name not in self.query:
             raise ValueError("query does not contain a reference to the table")
         #  TODO validate the input/output columns for
@@ -74,14 +74,16 @@ class HiveQuery(object):
             "DROP TABLE {0};".format(self.results_table_name),
             ]
         #  add the table in which we'll load the source data
-        parts += self._create_table_ddl(self.table_name, self.input_columns,
+        parts += self._create_table_ddl(self.table_name,
+                                        self.input_columns,
                                         temp_table_dir)
         #  add statement to load the source data into this table
         parts.append("LOAD DATA LOCAL INPATH '{0}' INTO TABLE {1};".format(
             data_source, self.table_name))
         #  add a table to select the results into (for CSV formatting)
         parts += self._create_table_ddl(self.results_table_name,
-                                        self.output_columns, output_dir)
+                                        self.output_columns,
+                                        output_dir)
         #  insert the results of the supplied query into this table
         parts.append("INSERT INTO TABLE {0}".format(
             self.results_table_name, self.query))
@@ -101,14 +103,16 @@ class HiveQuery(object):
             "SET hive.exec.compress.output=false;"
             ]
         # add the table in which we'll load the source data
-        parts += self._create_table_ddl(self.table_name, self.input_columns,
+        parts += self._create_table_ddl(self.table_name,
+                                        self.input_columns,
                                         temp_table_dir)
         # add statement to load the source data into this table
         parts.append("LOAD DATA INPATH '{0}' INTO TABLE {1};".format(
             data_source, self.table_name))
         # add a table to select the results into (for CSV formatting)
         parts += self._create_table_ddl(self.results_table_name,
-                                        self.output_columns, output_dir)
+                                        self.output_columns,
+                                        output_dir)
         # insert the results of the supplied query into this table
         parts.append("INSERT INTO TABLE {0}".format(self.results_table_name))
         # and finally, the query

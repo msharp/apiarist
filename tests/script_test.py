@@ -23,11 +23,18 @@ class HiveQueryTest(unittest.TestCase):
                      ):
         return HiveQuery(tn, ic, oc, q)
 
-    def raise_semi_colon_error(self):
-        pass
+    def raise_table_name_error_test(self):
+        self.assertRaises(ValueError,
+                          self._dummy_query,
+                          tn='nonexistent-table')
 
-    def raise_table_name_error(self):
-        pass
+    def missing_semi_colon_is_added_test(self):
+        q = self._dummy_query(q=""" SELECT foo, bar
+                                    FROM some_table
+                                    WHERE 0 = 1
+                                 """)
+
+        self.assertEqual(q.query[-1:], ';')
 
     def parsed_query_test(self):
         parsed_query = "SELECT foo, bar FROM some_table WHERE zero = 0;"
