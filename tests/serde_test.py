@@ -24,11 +24,12 @@ class SerdeTest(unittest.TestCase):
         self.assertEqual(s3, s._s3_base_path)
         # by getting from env
         s3 = 's3://foo/baz/bar/'
-        os.environ['S3_BASE_PATH'] = s3
+        os.environ['S3_SCRATCH_URI'] = s3
         s = Serde('csv')
         self.assertEqual(s3, s._s3_base_path)
 
     def s3_base_path_error_test(self):
-        del os.environ['S3_BASE_PATH']
+        os.environ['S3_SCRATCH_URI'] = 'foo'
+        del os.environ['S3_SCRATCH_URI']
         s = Serde()
         self.assertRaises(ValueError, s.s3_path)

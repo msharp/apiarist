@@ -35,7 +35,7 @@ class Serde(object):
 
         # base path for s3 files
         if s3_base_path is None:
-            s3_base_path = os.environ.get('S3_BASE_PATH')
+            s3_base_path = os.environ.get('S3_SCRATCH_URI')
         self._s3_base_path = s3_base_path
 
     def s3_path(self):

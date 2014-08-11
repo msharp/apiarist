@@ -120,17 +120,21 @@ class HiveJobLauncher(object):
         master_instance_type = (self.options.master_instance_type or
                                 slave_instance_type)
         return {
+            'aws_access_key_id': self.options.aws_access_key_id,
+            'aws_secret_access_key': self.options.aws_secret_access_key,
             'input_path': self.input_data,
             'output_dir': self.options.output_dir,
             'hive_query': self.hive_query(),
-            'scratch_dir': self.options.scratch_uri,
-            'log_uri': self.options.log_uri,
+            'scratch_uri': self.options.scratch_uri,
+            'log_path': self.options.log_uri,
             'job_name': self.job_name,
             'master_instance_type': master_instance_type,
             'slave_instance_type': slave_instance_type,
             'num_instances': self.options.num_instances,
             'ami_version': self.options.ami_version,
             'hive_version': self.options.hive_version,
+            's3_sync_wait_time': self.options.s3_sync_wait_time,
+            'check_emr_status_every': self.options.check_emr_status_every,
             }
 
     def hive_query(self):

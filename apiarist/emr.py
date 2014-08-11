@@ -32,17 +32,26 @@ logger = logging.getLogger(__name__)
 class EMRRunner():
 
     def __init__(self, job_name=None, input_path=None, hive_query=None,
-                 output_dir=None, scratch_dir=None, log_path=None,
-                 action_on_failure=None,  ami_version=None, hive_version=None,
+                 output_dir=None, scratch_uri=None, log_path=None,
+                 ami_version=None, hive_version=None, num_instances=None,
                  master_instance_type=None, slave_instance_type=None,
-                 num_instances=None):
+                 aws_access_key_id=None, aws_secret_access_key=None,
+                 s3_sync_wait_time=5, check_emr_status_every=30):
 
         self.job_name = job_name
         self.job_id = self._generate_job_id()
         self.start_time = time.time()
 
-        logger.info("JobID {0}, started at {1}".format(self.job_id,
-                                                       self.start_time))
+        # AWS credentials can come from arguments or environment
+        self.aws_access_key_id = (aws_access_key_id or
+                                  os.environ['AWS_ACCESS_KEY_ID'])
+        self.aws_secret_access_key = (aws_secret_access_key or
+                                      os.environ['AWS_SECRET_ACCESS_KEY'])
+
+        logger.info("JobID {0}, started at {1}gg".format(self.job_id,
+                                                         self.start_time))
+        self.s3_sync_wait_time = s3_sync_wait_time
+        self.check_emr_status_every = check_emr_status_every
 
         # I/O for job data
         self.input_path = input_path
@@ -55,7 +64,6 @@ class EMRRunner():
         self.hive_query = hive_query
 
         #  EMR options
-        #  TODO ? add EMRRunnerOptionStore class
         self.master_instance_type = master_instance_type
         self.slave_instance_type = slave_instance_type
         self.ami_version = ami_version
@@ -63,17 +71,23 @@ class EMRRunner():
         self.num_instances = num_instances
 
         # S3 locations
-        self.base_path = scratch_dir or os.environ['S3_BASE_PATH']
-        self.output_path = self.output_dir or \
-            self.base_path + self.job_id + '/output/'
-        self.data_path = self.base_path + self.job_id + '/data'
+        if scratch_uri:
+            self.base_path = scratch_uri
+            os.environ['S3_SCRATCH_URI'] = scratch_uri
+        else:
+            self.base_path = os.environ['S3_SCRATCH_URI']
+        # allow alternate logging path
+        self.log_path = log_path or self.base_path + 'logs/'
+        # other temp files live in a jobID bucket
+        self.job_files = self.base_path + self.job_id + '/'
+        self.data_path = self.job_files + 'data'
         if self.input_is_dir:
             self.data_path += '/'
-        self.table_path = self.base_path + self.job_id + '/tables/'
-        self.script_path = self.base_path + self.job_id + '/script.hql'
-        #  allow alternate logging path
-        self.log_path = log_path or self.base_path + 'logs/'
+        self.table_path = self.job_files + 'tables/'
+        self.script_path = self.job_files + 'script.hql'
+        self.output_path = self.output_dir or self.job_files + 'output/'
 
+        # a local temp dir is used to write the script
         tmp_dir = os.environ['APIARIST_TMP_DIR'] + self.job_id
         self.local_script_file = tmp_dir + '.hql'
 
@@ -117,11 +131,12 @@ class EMRRunner():
         # and create the hive script
         self._generate_and_upload_hive_script()
 
-        logger.info("Waiting 5s for S3 eventual consistency")
-        time.sleep(5)
+        logger.info("Waiting {} seconds for S3 eventual consistency".format(
+                    self.s3_sync_wait_time))
+        time.sleep(self.s3_sync_wait_time)
 
-        conn = EmrConnection(os.environ['AWS_ACCESS_KEY_ID'],
-                             os.environ['AWS_SECRET_ACCESS_KEY'])
+        conn = EmrConnection(self.aws_access_key_id,
+                             self.aws_secret_access_key)
 
         setup_step = InstallHiveStep(self.hive_version)
         run_step = HiveStep(self.job_name, self.script_path)
@@ -139,8 +154,6 @@ class EMRRunner():
 
         self._wait_for_job_to_complete(conn, jobid)
 
-        # TODO move file to specified out put dir (if provided)
-
         logger.info("Output file is in: {0}".format(self.output_path))
 
     def cleanup(self):
@@ -156,7 +169,7 @@ class EMRRunner():
         Also grab log URI from the job status (since we may not know it)
         """
         success = False
-        chk_status_freq = 30
+        chk_status_freq = self.check_emr_status_every
         # opts = {'check_emr_status_every': 30}
         # s3_logs = self.log_path
         emr_job_start = self.start_time

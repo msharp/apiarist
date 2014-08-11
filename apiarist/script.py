@@ -52,10 +52,10 @@ class HiveQuery(object):
     def __repr__(self):
         return "HiveQuery:{}...".format(self.query[:80])
 
-    def _csv_serde_jar(self):
+    def _csv_serde_jar(self, s3_scratch_uri):
         """Using a JAR for serialisation/deserialisation in the Hive tables
         """
-        serde = Serde('csv')
+        serde = Serde('csv', s3_scratch_uri)
         return serde.s3_path()
 
     def _parse_query(self, query):
@@ -90,13 +90,14 @@ class HiveQuery(object):
         #  return a string that can be written to a file and run on Hive
         return "\n".join(parts)
 
-    def emr_hive_script(self, data_source, output_dir, temp_table_dir):
+    def emr_hive_script(self, data_source, output_dir, temp_table_dir,
+                        s3_scratch_uri=None):
         """Generate the complete Hive script for EMR
         igenerates a set of comma-delimited files via a hive textfile table
         """
         # boilerplate
         parts = [
-            "ADD JAR {0};".format(self._csv_serde_jar()),
+            "ADD JAR {0};".format(self._csv_serde_jar(s3_scratch_uri)),
             "SET hive.exec.compress.output=false;"
             ]
         # add the table in which we'll load the source data

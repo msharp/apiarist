@@ -38,6 +38,7 @@ class HiveQueryTest(unittest.TestCase):
         output_dir = 's3://foo/bar/baz/temp/'
         temp_table_dir = 's3://foo/bar/baz/table/'
         serde = os.environ["CSV_SERDE_JAR_S3"] = 's3://path/to/serde.jar'
+        os.environ['S3_SCRATCH_URI'] = 's3://foo/bar/baz/'
         s = "ADD JAR {};\n".format(serde)
         s += "SET hive.exec.compress.output=false;\n"
         s += "CREATE EXTERNAL TABLE some_table (`foo` STRING, `bar` STRING)\n"

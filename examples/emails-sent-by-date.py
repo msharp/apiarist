@@ -7,7 +7,7 @@ from apiarist.job import HiveJob
 # temp dir ??
 tmp_dir = os.path.join(apiarist_dir, 'temp')
 os.environ['APIARIST_TMP_DIR'] = tmp_dir + '/'
-os.environ['S3_BASE_PATH'] = 's3://hivetests/scratch/'
+os.environ['S3_SCRATCH_URI'] = 's3://hivetests/scratch/'
 os.environ['AWS_ACCESS_KEY_ID'] = ''
 os.environ['AWS_SECRET_ACCESS_KEY'] = ''
 
