@@ -50,6 +50,9 @@ setup(
     packages=[
         'apiarist'
     ],
+    package_data={
+        'apiarist': ['jars/*.jar']
+    },
     url='http://github.com/msharp/apiarist',
     version=apiarist.__version__,
     **setuptools_kwargs

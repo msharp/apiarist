@@ -22,7 +22,7 @@ class UnknownSerdeError(Exception):
 class Serde(object):
     """Class to manage the Hive table serde jars
     """
-    JARS_DIR = os.path.join(os.path.dirname(__file__), '..', 'jars')
+    JARS_DIR = os.path.join(os.path.dirname(__file__), 'jars')
     CSV_JAR = 'csv-serde-1.1.2-0.11.0-all.jar'
 
     def __init__(self, serde='csv', s3_base_path=None):
