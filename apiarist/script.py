@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import re
 from apiarist.serde import Serde
 
 
@@ -34,14 +33,14 @@ class HiveQuery(object):
         'STRING',   # up to 2GB
         ]
 
-    def __init__(self, table_name, input_columns, output_columns, query):
-        """Initalise the query with all the variable properties
-        defined for a HiveJob """
-        self.table_name = table_name
-        self.results_table_name = table_name + "_results"
-        self.query = self._parse_query(query.strip())
-        self.input_columns = input_columns
-        self.output_columns = output_columns
+    def __init__(self, hive_job):
+        """Initalise the query with a HiveJob object
+        """
+        self.table_name = hive_job.table()
+        self.results_table_name = self.table_name + "_results"
+        self.query = hive_job.plain_query()
+        self.input_columns = hive_job.input_columns()
+        self.output_columns = hive_job.output_columns()
         if self.query[-1:] != ';':
             self.query += ';'
         if self.table_name not in self.query:
@@ -57,10 +56,6 @@ class HiveQuery(object):
         """
         serde = Serde('csv', s3_scratch_uri)
         return serde.s3_path()
-
-    def _parse_query(self, query):
-        """Condense spaces"""
-        return re.sub(r"\s+", " ", query)
 
     def local_hive_script(self, data_source, output_dir, temp_table_dir):
         """generate a hive script to execute on the local hive server

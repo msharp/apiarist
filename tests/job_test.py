@@ -9,10 +9,16 @@ from apiarist.job import HiveQuery
 class MockJob(HiveJob):
     def input_columns(self):
         return []
+
     def output_columns(self):
         return []
+
     def query(self):
-        return "foo;"
+        return """SELECT foo, bar, baz
+               FROM foo
+               WHERE x = y
+               """
+
     def table(self):
         return "foo"
 
@@ -43,5 +49,10 @@ class HiveJobTest(unittest.TestCase):
         self.assertEqual(type(j.hive_query()), HiveQuery)
 
     def allows_passthrough_options_test(self):
-        j = MockJob(['foo','--passthrough-option','foo'])
+        j = MockJob(['foo', '--passthrough-option', 'foo'])
         self.assertEqual(j.options.popt, 'foo')
+
+    def plain_query_test(self):
+        j = MockJob(['foo'])
+        q = "SELECT foo, bar, baz FROM foo WHERE x = y"
+        self.assertEqual(q, j.plain_query())

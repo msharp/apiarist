@@ -14,6 +14,7 @@
 """Class to inherit your HiveJobs from. See README for more info
 """
 import logging
+import re
 
 from apiarist.launch import HiveJobLauncher
 from apiarist.script import HiveQuery
@@ -30,8 +31,11 @@ class HiveJob(HiveJobLauncher):
     def hive_query(self):
         """Get the Hive script object based on provided params
         """
-        return HiveQuery(self.table(), self.input_columns(),
-                         self.output_columns(), self.query())
+        return HiveQuery(self)
+
+    def plain_query(self):
+        """Condense spaces"""
+        return re.sub(r"\s+", " ", self.query()).strip()
 
     def _job_name(self):
         return self.__class__.__name__

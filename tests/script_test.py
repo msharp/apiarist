@@ -4,7 +4,28 @@
 import os
 import unittest
 from apiarist.script import HiveQuery
+from apiarist.job import HiveJob
 from apiarist.serde import Serde
+
+
+class DummyJob(HiveJob):
+    def __init__(self, q='', tn='', ic='', oc=''):
+        self.q = q
+        self.tn = tn
+        self.ic = ic
+        self.oc = oc
+
+    def table(self):
+        return self.tn
+
+    def query(self):
+        return self.q
+
+    def input_columns(self):
+        return self.ic
+
+    def output_columns(self):
+        return self.oc
 
 
 class HiveQueryTest(unittest.TestCase):
@@ -21,7 +42,8 @@ class HiveQueryTest(unittest.TestCase):
                      ic=[('foo', 'STRING'), ('bar', 'STRING')],
                      oc=[('foo', 'STRING'), ('bar', 'STRING')]
                      ):
-        return HiveQuery(tn, ic, oc, q)
+        job = DummyJob(q, tn, ic, oc)
+        return HiveQuery(job)
 
     def raise_table_name_error_test(self):
         self.assertRaises(ValueError,
