@@ -19,17 +19,19 @@ from boto.s3.connection import S3Connection
 from boto.s3.key import Key
 
 
-def get_conn():
-    return S3Connection(os.environ['AWS_ACCESS_KEY_ID'],
-                        os.environ['AWS_SECRET_ACCESS_KEY'])
+def get_conn(aws_access_key_id=None, aws_secret_access_key=None):
+    k = aws_access_key_id or os.environ['AWS_ACCESS_KEY_ID']
+    s = aws_secret_access_key or os.environ['AWS_SECRET_ACCESS_KEY']
+    return S3Connection(k, s)
 
 
-def copy_s3_file(source, destination):
+def copy_s3_file(source, destination,
+                 aws_access_key_id=None, aws_secret_access_key=None):
     """ Copy an S3 object from one location to another
     """
     dest_bucket, dest_key = parse_s3_uri(destination)
     source_bucket, source_key = parse_s3_uri(source)
-    conn = get_conn()
+    conn = get_conn(aws_access_key_id, aws_secret_access_key)
     if is_dir(source):
         s_bkt = conn.get_bucket(source_bucket)
         d_bkt = conn.get_bucket(dest_bucket)
@@ -46,11 +48,12 @@ def copy_s3_file(source, destination):
         return bkt.copy_key(dest_key, source_bucket, source_key)
 
 
-def upload_file_to_s3(file_path, s3_path):
+def upload_file_to_s3(file_path, s3_path,
+                      aws_access_key_id=None, aws_secret_access_key=None):
     """Create an S3 object from the contents of a local file
     """
     s3_bucket, s3_key = parse_s3_uri(s3_path)
-    conn = get_conn()
+    conn = get_conn(aws_access_key_id, aws_secret_access_key)
     bkt = conn.get_bucket(s3_bucket)
     k = Key(bkt)
     k.key = s3_key
@@ -84,14 +87,15 @@ def is_dir(key):
     return obj_type(key) == 'directory'
 
 
-def concatenate_keys(source_dir, destination_key):
+def concatenate_keys(source_dir, destination_key,
+                     aws_access_key_id=None, aws_secret_access_key=None):
     """Concatenate all the files in a bucket
     using multipart upload feature of S3 API.
     NOTE: this only works when all files are above 5MB
     """
     s_bucket, s_key = parse_s3_uri(source_dir)
     d_bucket, d_key = parse_s3_uri(destination_key)
-    conn = get_conn()
+    conn = get_conn(aws_access_key_id, aws_secret_access_key)
     s_bk = conn.get_bucket(s_bucket)
     d_bk = conn.get_bucket(d_bucket)
     mp = d_bk.initiate_multipart_upload(d_key)
