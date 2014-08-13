@@ -45,6 +45,9 @@ class HiveQueryTest(unittest.TestCase):
         job = DummyJob(q, tn, ic, oc)
         return HiveQuery(job)
 
+    def must_pass_hivejob_object_test(self):
+        self.assertRaises(TypeError, HiveQuery, 'foo')
+
     def raise_table_name_error_test(self):
         self.assertRaises(ValueError,
                           self._dummy_query,

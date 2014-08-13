@@ -36,15 +36,23 @@ class HiveQuery(object):
     def __init__(self, hive_job):
         """Initalise the query with a HiveJob object
         """
-        self.table_name = hive_job.table()
-        self.results_table_name = self.table_name + "_results"
-        self.query = hive_job.plain_query()
-        self.input_columns = hive_job.input_columns()
-        self.output_columns = hive_job.output_columns()
+        try:
+            self.table_name = hive_job.table()
+            self.results_table_name = self.table_name + "_results"
+            self.query = hive_job.plain_query()
+            self.input_columns = hive_job.input_columns()
+            self.output_columns = hive_job.output_columns()
+        except AttributeError:
+            raise TypeError("HiveQuery expects a HiveJob-compatible oject")
+
+        # ensure we have a semi-colon to terminate the select query
         if self.query[-1:] != ';':
             self.query += ';'
+
+        # ensure the table name is included in the query
         if self.table_name not in self.query:
             raise ValueError("query does not contain a reference to the table")
+
         #  TODO validate the input/output columns for
         #  proper data types and reserved keywords
 
