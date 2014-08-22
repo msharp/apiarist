@@ -43,10 +43,20 @@ class EMRRunner():
         self.start_time = time.time()
 
         # AWS credentials can come from arguments or environment
-        self.aws_access_key_id = (aws_access_key_id or
-                                  os.environ['AWS_ACCESS_KEY_ID'])
-        self.aws_secret_access_key = (aws_secret_access_key or
-                                      os.environ['AWS_SECRET_ACCESS_KEY'])
+        # set AWS credentials if supplied (override ENV)
+        if aws_access_key_id:
+            os.environ['AWS_ACCESS_KEY_ID'] = aws_access_key_id
+            self.aws_access_key_id = aws_access_key_id
+        else:
+            logger.debug("Getting AWS access key from ENV")
+            self.aws_access_key_id = os.environ['AWS_ACCESS_KEY_ID']
+
+        if aws_secret_access_key:
+            os.environ['AWS_SECRET_ACCESS_KEY'] = aws_secret_access_key
+            self.aws_secret_access_key = aws_secret_access_key
+        else:
+            logger.debug("Getting AWS secret key from ENV")
+            self.aws_secret_access_key = os.environ['AWS_SECRET_ACCESS_KEY']
 
         logger.info("JobID {0}, started at {1}gg".format(self.job_id,
                                                          self.start_time))
@@ -58,7 +68,10 @@ class EMRRunner():
         self.output_dir = output_dir
 
         # is the input multiple files in a 'directory'?
-        self.input_is_dir = is_dir(input_path)
+        try:
+            self.input_is_dir = is_dir(input_path)
+        except TypeError:
+            self.input_is_dir = False
 
         # the Hive script object
         self.hive_query = hive_query
@@ -76,6 +89,7 @@ class EMRRunner():
             os.environ['S3_SCRATCH_URI'] = scratch_uri
         else:
             self.base_path = os.environ['S3_SCRATCH_URI']
+
         # allow alternate logging path
         self.log_path = log_path or self.base_path + 'logs/'
         # other temp files live in a jobID bucket
