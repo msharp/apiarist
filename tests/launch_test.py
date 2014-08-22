@@ -93,3 +93,9 @@ class HiveJobLauncherTest(unittest.TestCase):
                                         '--num-ec2-instances', 9])
         self.assertEqual(j.options.num_instances, 9)
         self.assertEqual(j.options.master_instance_type, 'q3.foo')
+
+    def supply_local_scratch_dir_test(self):
+        d = '/foo/bar/'
+        j = HiveJobLauncher('TestJob', [self.DATA_PATH,
+                                        '--local-scratch-dir', d])
+        self.assertEqual(j.options.scratch_dir, d)

@@ -12,6 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from apiarist.serde import Serde
+import os
+
+
+def generate_hive_script_file(script, local_script_file):
+    f = open(local_script_file, 'w')
+    f.writelines(script)
+    f.close()
+
+
+def get_script_file_location(job_id, tmp_dir=None):
+    if tmp_dir:
+        td = tmp_dir
+    elif 'APIARIST_TMP_DIR' in os.environ:
+        td = os.environ['APIARIST_TMP_DIR']
+    else:
+        td = '/tmp/'
+    return td + job_id + '.hql'
 
 
 class HiveQuery(object):

@@ -25,6 +25,7 @@ from boto.emr.step import HiveStep
 from boto.emr.step import InstallHiveStep
 from boto.emr.connection import EmrConnection
 from apiarist.s3 import copy_s3_file, is_dir, upload_file_to_s3
+from apiarist.script import generate_hive_script_file, get_script_file_location
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +37,8 @@ class EMRRunner():
                  ami_version=None, hive_version=None, num_instances=None,
                  master_instance_type=None, slave_instance_type=None,
                  aws_access_key_id=None, aws_secret_access_key=None,
-                 s3_sync_wait_time=5, check_emr_status_every=30):
+                 s3_sync_wait_time=5, check_emr_status_every=30,
+                 temp_dir=None):
 
         self.job_name = job_name
         self.job_id = self._generate_job_id()
@@ -102,17 +104,15 @@ class EMRRunner():
         self.output_path = self.output_dir or self.job_files + 'output/'
 
         # a local temp dir is used to write the script
-        tmp_dir = os.environ['APIARIST_TMP_DIR'] + self.job_id
-        self.local_script_file = tmp_dir + '.hql'
+        self.local_script_file = get_script_file_location(self.job_id,
+                                                          temp_dir)
 
     def _generate_hive_script(self, data_source):
         """Write the HQL to a local (temp) file
         """
         hq = self.hive_query.emr_hive_script(data_source, self.output_path,
                                              self.table_path)
-        f = open(self.local_script_file, 'w')
-        f.writelines(hq)
-        f.close()
+        generate_hive_script_file(hq, self.local_script_file)
 
     def _generate_job_id(self):
         """Create a unique job run identifier

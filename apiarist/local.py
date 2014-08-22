@@ -19,6 +19,7 @@ import hashlib
 import time
 import shutil
 import logging
+from apiarist.script import generate_hive_script_file, get_script_file_location
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +30,8 @@ class LocalRunner():
     """
 
     def __init__(self, job_name=None, input_path=None,
-                 hive_query=None, output_dir=None):
+                 hive_query=None, output_dir=None,
+                 temp_dir=None):
 
         #  TODO test for Hive installation
 
@@ -38,23 +40,39 @@ class LocalRunner():
         self.start_time = time.time()
 
         # I/O for job data
-        tmp_path = os.environ['APIARIST_TMP_DIR'] + self.job_id
-        self.data_path = tmp_path + '.data'
-        self.table_path = tmp_path + '-table'
+        self.scratch_dir = self.get_local_scratch_dir(temp_dir)
+
+        self.data_path = self.scratch_dir + 'data'
+        self.table_path = self.scratch_dir + 'table'
         self.input_path = os.path.abspath(input_path)
         if output_dir:
             self.output_dir = os.path.abspath(output_dir) + '/' + self.job_id
         else:
-            self.output_dir = tmp_path + '-output'
+            self.output_dir = self.scratch_dir + 'output'
 
         # the Hive script object
         self.hive_query = hive_query
-        self.local_script_file = tmp_path + '.hql'
+        self.local_script_file = get_script_file_location(self.job_id,
+                                                          self.scratch_dir)
+
+    def get_local_scratch_dir(self, temp_dir=None):
+        if temp_dir:
+            tmp_path = temp_dir + self.job_id + '/'
+        elif 'APIARIST_TMP_DIR' in os.environ:
+            tmp_path = os.environ['APIARIST_TMP_DIR'] + self.job_id + '/'
+        else:
+            tmp_path = "~/.apiarist/" + self.job_id + '/'
+        return tmp_path
+
+    def _ensure_local_scratch_dir_exists(self):
+        if not os.path.exists(self.scratch_dir):
+            os.makedirs(self.scratch_dir)
 
     def run(self):
         """Run the hive query against a local hive installation (*nix only)
         """
         # prepare files
+        self._ensure_local_scratch_dir_exists()
         self._copy_input_data()
         self._generate_hive_script()
         # execute against hive server
@@ -85,9 +103,7 @@ class LocalRunner():
         hq = self.hive_query.local_hive_script(self.data_path,
                                                self.output_dir,
                                                self.table_path)
-        f = open(self.local_script_file, 'w')
-        f.writelines(hq)
-        f.close()
+        generate_hive_script_file(hq, self.local_script_file)
 
     def _generate_job_id(self):
         """Create a unique job run identifier

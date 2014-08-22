@@ -6,6 +6,7 @@ import unittest
 from apiarist.script import HiveQuery
 from apiarist.job import HiveJob
 from apiarist.serde import Serde
+from apiarist.script import get_script_file_location
 
 
 class DummyJob(HiveJob):
@@ -114,3 +115,16 @@ class HiveQueryTest(unittest.TestCase):
         cols = [('foo', 'INT'), ('bar', 'STRING')]
         ddl = "`foo` INT, `bar` STRING"
         self.assertEqual(ddl, self.hq._column_ddl(cols))
+
+    def get_script_file_location_test(self):
+        if 'APIARIST_TMP_DIR' in os.environ:
+            del os.environ['APIARIST_TMP_DIR']
+        l, j = "/foo/bar", "abcdef1234567890"
+        self.assertEqual(get_script_file_location(j),
+                         '/tmp/' + j + '.hql')
+        self.assertEqual(get_script_file_location(j, l),
+                         l + j + '.hql')
+        # test with ENV var
+        os.environ['APIARIST_TMP_DIR'] = "/bar/baz/"
+        self.assertEqual(get_script_file_location(j),
+                         '/bar/baz/' + j + '.hql')

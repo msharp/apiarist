@@ -113,6 +113,7 @@ class HiveJobLauncher(object):
             'output_dir': self.options.output_dir,
             'hive_query': self.hive_query(),
             'job_name': self.job_name,
+            'temp_dir': self.options.scratch_dir
             }
 
     def emr_job_runner_kwargs(self):
@@ -135,6 +136,7 @@ class HiveJobLauncher(object):
             'hive_version': self.options.hive_version,
             's3_sync_wait_time': self.options.s3_sync_wait_time,
             'check_emr_status_every': self.options.check_emr_status_every,
+            'temp_dir': self.options.scratch_dir
             }
 
     def hive_query(self):
@@ -177,6 +179,10 @@ class HiveJobLauncher(object):
             )
         self.option_parser.add_option(
             '--s3-scratch-uri', dest='scratch_uri',
+            action='store', default=False
+            )
+        self.option_parser.add_option(
+            '--local-scratch-dir', dest='scratch_dir',
             action='store', default=False
             )
 
