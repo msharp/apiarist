@@ -40,14 +40,14 @@ class Serde(object):
 
     def s3_path(self):
         """get or create a location on S3 for the serde jar"""
-        if self._s3_base_path is None:
-            raise ValueError("must specify the S3 base path")
-        try:
+        if 'CSV_SERDE_JAR_S3' in os.environ:
             # known location on S3
-            serde = os.environ["CSV_SERDE_JAR_S3"]
-        except KeyError:
+            serde = os.environ['CSV_SERDE_JAR_S3']
+        else:
+            if self._s3_base_path is None:
+                raise ValueError("must specify the S3 scratch URI")
             # ensure the jar is up on S3
             jar_path = self._s3_base_path + 'jars/csv-serde.jar'
             upload_file_to_s3(self.jar, jar_path)
-            os.environ["CSV_SERDE_JAR_S3"] = serde = jar_path
+            os.environ['CSV_SERDE_JAR_S3'] = serde = jar_path
         return serde

@@ -29,7 +29,11 @@ class SerdeTest(unittest.TestCase):
         self.assertEqual(s3, s._s3_base_path)
 
     def s3_base_path_error_test(self):
-        os.environ['S3_SCRATCH_URI'] = 'foo'
-        del os.environ['S3_SCRATCH_URI']
+        # will raise error if neither scratch path
+        # nor serde jar URI available
+        if 'S3_SCRATCH_URI' in os.environ:
+            del os.environ['S3_SCRATCH_URI']
+        if 'CSV_SERDE_JAR_S3' in os.environ:
+            del os.environ['CSV_SERDE_JAR_S3']
         s = Serde()
         self.assertRaises(ValueError, s.s3_path)

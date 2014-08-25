@@ -60,8 +60,6 @@ class EMRRunner():
             logger.debug("Getting AWS secret key from ENV")
             self.aws_secret_access_key = os.environ['AWS_SECRET_ACCESS_KEY']
 
-        logger.info("JobID {0}, started at {1}gg".format(self.job_id,
-                                                         self.start_time))
         self.s3_sync_wait_time = s3_sync_wait_time
         self.check_emr_status_every = check_emr_status_every
 
@@ -85,7 +83,7 @@ class EMRRunner():
         self.hive_version = hive_version
         self.num_instances = num_instances
 
-        # S3 locations
+        # S3 'scratch' directory
         if scratch_uri:
             self.base_path = scratch_uri
             os.environ['S3_SCRATCH_URI'] = scratch_uri
@@ -106,6 +104,9 @@ class EMRRunner():
         # a local temp dir is used to write the script
         self.local_script_file = get_script_file_location(self.job_id,
                                                           temp_dir)
+
+        logger.info("JobID {0}, started at {1}".format(self.job_id,
+                                                       self.start_time))
 
     def _generate_hive_script(self, data_source):
         """Write the HQL to a local (temp) file
@@ -149,6 +150,7 @@ class EMRRunner():
                     self.s3_sync_wait_time))
         time.sleep(self.s3_sync_wait_time)
 
+        # TODO more options like setting aws region
         conn = EmrConnection(self.aws_access_key_id,
                              self.aws_secret_access_key)
 
