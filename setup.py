@@ -32,7 +32,7 @@ setup(
     author='Max Sharples',
     author_email='maxsharples@gmail.com',
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
         'Natural Language :: English',
@@ -45,7 +45,9 @@ setup(
     ],
     description='Python Hive query framework',
     license='Apache',
-    long_description=open(os.path.abspath(os.path.join(os.path.dirname(__file__),'README.md'))).read(),
+    long_description=open(os.path.abspath(os.path.join(
+                                          os.path.dirname(__file__),
+                                          'README.md'))).read(),
     name='apiarist',
     packages=[
         'apiarist'
