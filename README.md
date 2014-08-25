@@ -102,7 +102,7 @@ Config options are divided by the type of runner (local/emr) to allow provision 
 
 Below is a sample config file:
 
-```YAML
+```yaml
 runners:
   emr:
     aws_access_key_id: AABBCCDDEEFF11223344
@@ -136,9 +136,11 @@ Jobs can be configured to accept arguments.
 
 To do this, add the following method to your job class to configutr the options:
 
-    def configure_options(self):
-        super(EmailRecipientsSummary, self).configure_options()
-        self.add_passthrough_option('--year', dest='year')
+```python
+def configure_options(self):
+    super(EmailRecipientsSummary, self).configure_options()
+    self.add_passthrough_option('--year', dest='year')
+```
 
 And then use the option by providing it in the command line arguments, like this:
 
@@ -146,12 +148,14 @@ And then use the option by providing it in the command line arguments, like this
 
 Then incorporating it into your HiveQL query like this:
 
-    def query(self):
-        q = "SELECT YEAR(day), weekday, SUM(sent) "
-        q += "FROM emails_sent "
-        q += "WHERE YEAR(day) = {0} ".format(self.options.year)
-        q += "GROUP BY YEAR(day), weekday;"
-        return q
+```python
+def query(self):
+    q = "SELECT YEAR(day), weekday, SUM(sent) "
+    q += "FROM emails_sent "
+    q += "WHERE YEAR(day) = {0} ".format(self.options.year)
+    q += "GROUP BY YEAR(day), weekday;"
+    return q
+```
 
 ## License
 
