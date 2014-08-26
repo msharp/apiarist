@@ -77,8 +77,8 @@ class HiveQueryTest(unittest.TestCase):
         s += "CREATE EXTERNAL TABLE some_table (`foo` STRING, `bar` STRING)\n"
         s += "ROW FORMAT serde 'com.bizo.hive.serde.csv.CSVSerde'\n"
         s += "WITH serdeproperties (\n"
-        s += r'"separatorChar" = ","' + "\n"
-        s += r'"quoteChar" = "\""' + "\n"
+        s += r'"separatorChar" = ",",' + "\n"
+        s += r'"quoteChar" = "\"",' + "\n"
         s += r'"escapeChar" = "\\"' + "\n)\n"
         s += "STORED AS TEXTFILE\nLOCATION '{}';\n".format(temp_table_dir)
         s += "LOAD DATA INPATH '{}' ".format(data_source)
@@ -87,8 +87,8 @@ class HiveQueryTest(unittest.TestCase):
         s += "(`foo` STRING, `bar` STRING)\n"
         s += "ROW FORMAT serde 'com.bizo.hive.serde.csv.CSVSerde'\n"
         s += "WITH serdeproperties (\n"
-        s += r'"separatorChar" = ","' + "\n"
-        s += r'"quoteChar" = "\""' + "\n"
+        s += r'"separatorChar" = ",",' + "\n"
+        s += r'"quoteChar" = "\"",' + "\n"
         s += r'"escapeChar" = "\\"' + "\n)\n"
         s += "STORED AS TEXTFILE\nLOCATION '{}';\n".format(output_dir)
         s += "INSERT INTO TABLE some_table_results\n"
@@ -107,8 +107,8 @@ class HiveQueryTest(unittest.TestCase):
         s += "CREATE EXTERNAL TABLE some_table (`foo` STRING, `bar` STRING)\n"
         s += "ROW FORMAT serde 'com.bizo.hive.serde.csv.CSVSerde'\n"
         s += "WITH serdeproperties (\n"
-        s += r'"separatorChar" = ","' + "\n"
-        s += r'"quoteChar" = "\""' + "\n"
+        s += r'"separatorChar" = ",",' + "\n"
+        s += r'"quoteChar" = "\"",' + "\n"
         s += r'"escapeChar" = "\\"' + "\n)\n"
         s += "STORED AS TEXTFILE\nLOCATION '{}';\n".format(temp_table_dir)
         s += "LOAD DATA LOCAL INPATH '{}' ".format(data_source)
@@ -117,8 +117,8 @@ class HiveQueryTest(unittest.TestCase):
         s += "(`foo` STRING, `bar` STRING)\n"
         s += "ROW FORMAT serde 'com.bizo.hive.serde.csv.CSVSerde'\n"
         s += "WITH serdeproperties (\n"
-        s += r'"separatorChar" = ","' + "\n"
-        s += r'"quoteChar" = "\""' + "\n"
+        s += r'"separatorChar" = ",",' + "\n"
+        s += r'"quoteChar" = "\"",' + "\n"
         s += r'"escapeChar" = "\\"' + "\n)\n"
         s += "STORED AS TEXTFILE\nLOCATION '{}';\n".format(output_dir)
         s += "INSERT INTO TABLE some_table_results\n"
@@ -151,8 +151,8 @@ class HiveQueryTest(unittest.TestCase):
             "CREATE EXTERNAL TABLE table_name (`foo` STRING, `bar` STRING)",
             "ROW FORMAT serde 'com.bizo.hive.serde.csv.CSVSerde'",
             "WITH serdeproperties (",
-            r'"separatorChar" = "\t"',
-            r'"quoteChar" = "\""',
+            r'"separatorChar" = "\t",',
+            r'"quoteChar" = "\"",',
             r'"escapeChar" = "\\"',
             ")",
             "STORED AS TEXTFILE",

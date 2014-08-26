@@ -3,9 +3,9 @@
 A python 2.5+ package for defining Hive queries which can be run on AWS EMR.
 
 It is, in its current form, only addressing a very narrow use-case. 
-Reading large CSV files into a Hive database, running a Hive query, and outputting the results to a CSV file.
+Reading large text files into a Hive database, running a Hive query, and outputting the results to a text file.
 
-Future versions may extend the input/output formats.
+File format can be CSV or similar - other delimiters can be specified.
 
 The jobs are runnable locally, which is mainly for testing. You will need a local version of Hive which is in your `PATH` such that the command `hive -f /some/hive/script.hql` causes hive to execute the contents of the file.
 
@@ -66,6 +66,26 @@ EMR:
 ### Serde
 
 Hive allows custom a serde to be used to define data formats in tables. Apiarist uses [csv-serde](https://github.com/ogrodnek/csv-serde) to handle the CSV format properly.
+
+This serde also allows configuration of the delimiter, quoting character, and escape character. The defaults are, delimiter = `,`, quote character = `"`, escape character = `\`. 
+
+You can override the defaults in your job. You should be careful about escape sequences when doing so because the value needs to be written into a file.
+
+It is best to definie them as string literals. Example:
+
+```python
+from apiarist.job import HiveJob
+
+class EmailRecipientsSummary(HiveJob):
+
+    INFILE_DELIMITER_CHAR = r'\t'
+    INFILE_QUOTE_CHAR = r"\'"
+    INFILE_ESCAPE_CHAR = r'%'
+
+    OUTFILE_DELIMITER_CHAR = r'\t'
+    OUTFILE_QUOTE_CHAR = r'\"'
+    OUTFILE_ESCAPE_CHAR = r"\\"
+```
 
 ## Configuration
  
