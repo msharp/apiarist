@@ -56,3 +56,18 @@ class HiveJobTest(unittest.TestCase):
         j = MockJob(['foo'])
         q = "SELECT foo, bar, baz FROM foo WHERE x = y"
         self.assertEqual(q, j.plain_query())
+
+    def has_delimter_char_test(self):
+        j = MockJob(['foo'])
+        self.assertEqual(j.INFILE_DELIMITER_CHAR, ",")
+        self.assertEqual(j.OUTFILE_DELIMITER_CHAR, ",")
+
+    def has_quote_char_test(self):
+        j = MockJob(['foo'])
+        self.assertEqual(j.INFILE_QUOTE_CHAR, r'\"')
+        self.assertEqual(j.OUTFILE_QUOTE_CHAR, r'\"')
+
+    def has_escape_char_test(self):
+        j = MockJob(['foo'])
+        self.assertEqual(j.INFILE_ESCAPE_CHAR, "\\\\")
+        self.assertEqual(j.OUTFILE_ESCAPE_CHAR, "\\\\")

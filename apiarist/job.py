@@ -25,6 +25,14 @@ log = logging.getLogger(__name__)
 
 class HiveJob(HiveJobLauncher):
 
+    INFILE_DELIMITER_CHAR = r','
+    INFILE_QUOTE_CHAR = r'\"'
+    INFILE_ESCAPE_CHAR = r'\\'
+
+    OUTFILE_DELIMITER_CHAR = r','
+    OUTFILE_QUOTE_CHAR = r'\"'
+    OUTFILE_ESCAPE_CHAR = r"\\"
+
     def __init__(self, args=None):
         super(HiveJob, self).__init__(self._job_name(), args)
 

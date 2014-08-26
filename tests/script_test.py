@@ -76,12 +76,20 @@ class HiveQueryTest(unittest.TestCase):
         s += "SET hive.exec.compress.output=false;\n"
         s += "CREATE EXTERNAL TABLE some_table (`foo` STRING, `bar` STRING)\n"
         s += "ROW FORMAT serde 'com.bizo.hive.serde.csv.CSVSerde'\n"
+        s += "WITH serdeproperties (\n"
+        s += r'"separatorChar" = ","' + "\n"
+        s += r'"quoteChar" = "\""' + "\n"
+        s += r'"escapeChar" = "\\"' + "\n)\n"
         s += "STORED AS TEXTFILE\nLOCATION '{}';\n".format(temp_table_dir)
         s += "LOAD DATA INPATH '{}' ".format(data_source)
         s += "INTO TABLE some_table;\n"
         s += "CREATE EXTERNAL TABLE some_table_results "
         s += "(`foo` STRING, `bar` STRING)\n"
         s += "ROW FORMAT serde 'com.bizo.hive.serde.csv.CSVSerde'\n"
+        s += "WITH serdeproperties (\n"
+        s += r'"separatorChar" = ","' + "\n"
+        s += r'"quoteChar" = "\""' + "\n"
+        s += r'"escapeChar" = "\\"' + "\n)\n"
         s += "STORED AS TEXTFILE\nLOCATION '{}';\n".format(output_dir)
         s += "INSERT INTO TABLE some_table_results\n"
         s += "SELECT foo, bar FROM some_table WHERE zero = 0;"
@@ -98,12 +106,20 @@ class HiveQueryTest(unittest.TestCase):
         s += "DROP TABLE some_table;\nDROP TABLE some_table_results;\n"
         s += "CREATE EXTERNAL TABLE some_table (`foo` STRING, `bar` STRING)\n"
         s += "ROW FORMAT serde 'com.bizo.hive.serde.csv.CSVSerde'\n"
+        s += "WITH serdeproperties (\n"
+        s += r'"separatorChar" = ","' + "\n"
+        s += r'"quoteChar" = "\""' + "\n"
+        s += r'"escapeChar" = "\\"' + "\n)\n"
         s += "STORED AS TEXTFILE\nLOCATION '{}';\n".format(temp_table_dir)
         s += "LOAD DATA LOCAL INPATH '{}' ".format(data_source)
         s += "INTO TABLE some_table;\n"
         s += "CREATE EXTERNAL TABLE some_table_results "
         s += "(`foo` STRING, `bar` STRING)\n"
         s += "ROW FORMAT serde 'com.bizo.hive.serde.csv.CSVSerde'\n"
+        s += "WITH serdeproperties (\n"
+        s += r'"separatorChar" = ","' + "\n"
+        s += r'"quoteChar" = "\""' + "\n"
+        s += r'"escapeChar" = "\\"' + "\n)\n"
         s += "STORED AS TEXTFILE\nLOCATION '{}';\n".format(output_dir)
         s += "INSERT INTO TABLE some_table_results\n"
         s += "SELECT foo, bar FROM some_table WHERE zero = 0;"
@@ -128,3 +144,25 @@ class HiveQueryTest(unittest.TestCase):
         os.environ['APIARIST_TMP_DIR'] = "/bar/baz/"
         self.assertEqual(get_script_file_location(j),
                          '/bar/baz/' + j + '.hql')
+
+    def create_table_ddl_test(self):
+        q = self._dummy_query()
+        ddl = [
+            "CREATE EXTERNAL TABLE table_name (`foo` STRING, `bar` STRING)",
+            "ROW FORMAT serde 'com.bizo.hive.serde.csv.CSVSerde'",
+            "WITH serdeproperties (",
+            r'"separatorChar" = "\t"',
+            r'"quoteChar" = "\""',
+            r'"escapeChar" = "\\"',
+            ")",
+            "STORED AS TEXTFILE",
+            "LOCATION 's3://foo/bar/';"
+            ]
+        tbl = q.create_table_ddl('table_name',
+                                 q.input_columns,
+                                 's3://foo/bar/',
+                                 (r'\t', r'\"', r'\\')
+                                 )
+        print ddl
+        print tbl
+        self.assertEqual(tbl, ddl)

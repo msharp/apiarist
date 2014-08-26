@@ -59,6 +59,14 @@ class HiveQuery(object):
             self.query = hive_job.plain_query()
             self.input_columns = hive_job.input_columns()
             self.output_columns = hive_job.output_columns()
+            self.input_control_chars = (hive_job.INFILE_DELIMITER_CHAR,
+                                        hive_job.INFILE_QUOTE_CHAR,
+                                        hive_job.INFILE_ESCAPE_CHAR
+                                        )
+            self.output_control_chars = (hive_job.OUTFILE_DELIMITER_CHAR,
+                                         hive_job.OUTFILE_QUOTE_CHAR,
+                                         hive_job.OUTFILE_ESCAPE_CHAR
+                                         )
         except AttributeError:
             raise TypeError("HiveQuery expects a HiveJob-compatible oject")
 
@@ -94,16 +102,18 @@ class HiveQuery(object):
             "DROP TABLE {0};".format(self.results_table_name),
             ]
         #  add the table in which we'll load the source data
-        parts += self._create_table_ddl(self.table_name,
-                                        self.input_columns,
-                                        temp_table_dir)
+        parts += self.create_table_ddl(self.table_name,
+                                       self.input_columns,
+                                       temp_table_dir,
+                                       self.input_control_chars)
         #  add statement to load the source data into this table
         parts.append("LOAD DATA LOCAL INPATH '{0}' INTO TABLE {1};".format(
             data_source, self.table_name))
         #  add a table to select the results into (for CSV formatting)
-        parts += self._create_table_ddl(self.results_table_name,
-                                        self.output_columns,
-                                        output_dir)
+        parts += self.create_table_ddl(self.results_table_name,
+                                       self.output_columns,
+                                       output_dir,
+                                       self.output_control_chars)
         #  insert the results of the supplied query into this table
         parts.append("INSERT INTO TABLE {0}".format(
             self.results_table_name, self.query))
@@ -123,16 +133,18 @@ class HiveQuery(object):
             "SET hive.exec.compress.output=false;"
             ]
         # add the table in which we'll load the source data
-        parts += self._create_table_ddl(self.table_name,
-                                        self.input_columns,
-                                        temp_table_dir)
+        parts += self.create_table_ddl(self.table_name,
+                                       self.input_columns,
+                                       temp_table_dir,
+                                       self.input_control_chars)
         # add statement to load the source data into this table
         parts.append("LOAD DATA INPATH '{0}' INTO TABLE {1};".format(
             data_source, self.table_name))
         # add a table to select the results into (for CSV formatting)
-        parts += self._create_table_ddl(self.results_table_name,
-                                        self.output_columns,
-                                        output_dir)
+        parts += self.create_table_ddl(self.results_table_name,
+                                       self.output_columns,
+                                       output_dir,
+                                       self.output_control_chars)
         # insert the results of the supplied query into this table
         parts.append("INSERT INTO TABLE {0}".format(self.results_table_name))
         # and finally, the query
@@ -140,13 +152,18 @@ class HiveQuery(object):
         # return a string that can be written to a file and run on Hive
         return "\n".join(parts)
 
-    def _create_table_ddl(self, name, columns, location):
+    def create_table_ddl(self, name, columns, location, control_chars):
         """Create a Hive table to store CSV data
         """
         cols = self._column_ddl(columns)
         return [
             "CREATE EXTERNAL TABLE {0} ({1})".format(name, cols),
             "ROW FORMAT serde 'com.bizo.hive.serde.csv.CSVSerde'",
+            "WITH serdeproperties (",
+            r'"separatorChar" = "{}"'.format(control_chars[0]),
+            r'"quoteChar" = "{}"'.format(control_chars[1]),
+            r'"escapeChar" = "{}"'.format(control_chars[2]),
+            ")",
             "STORED AS TEXTFILE",
             "LOCATION '{0}';".format(location)
             ]
