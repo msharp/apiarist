@@ -25,10 +25,12 @@ log = logging.getLogger(__name__)
 
 class HiveJob(HiveJobLauncher):
 
+    # defaults for the input file
     INFILE_DELIMITER_CHAR = r','
     INFILE_QUOTE_CHAR = r'\"'
     INFILE_ESCAPE_CHAR = r'\\'
 
+    # defaults for the output file
     OUTFILE_DELIMITER_CHAR = r','
     OUTFILE_QUOTE_CHAR = r'\"'
     OUTFILE_ESCAPE_CHAR = r"\\"
