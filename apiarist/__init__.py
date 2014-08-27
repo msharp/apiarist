@@ -16,4 +16,4 @@
 and output CSV files (or other delimiters)
 """
 
-__version__ = '0.1.0'
+__version__ = '0.1.1'
