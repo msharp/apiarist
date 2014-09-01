@@ -99,3 +99,10 @@ class HiveJobLauncherTest(unittest.TestCase):
         j = HiveJobLauncher('TestJob', [self.DATA_PATH,
                                         '--local-scratch-dir', d])
         self.assertEqual(j.options.scratch_dir, d)
+
+    def tell_job_not_to_stream_output_test(self):
+        j = HiveJobLauncher('TestJob', [self.DATA_PATH])
+        self.assertFalse(j.options.no_output)
+        j = HiveJobLauncher('TestJob', [self.DATA_PATH,
+                                        '--no-output'])
+        self.assertTrue(j.options.no_output)

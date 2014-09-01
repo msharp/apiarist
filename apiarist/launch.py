@@ -113,7 +113,8 @@ class HiveJobLauncher(object):
             'output_dir': self.options.output_dir,
             'hive_query': self.hive_query(),
             'job_name': self.job_name,
-            'temp_dir': self.options.scratch_dir
+            'temp_dir': self.options.scratch_dir,
+            'no_output': self.options.no_output,
             }
 
     def emr_job_runner_kwargs(self):
@@ -216,6 +217,10 @@ class HiveJobLauncher(object):
         self.option_parser.add_option(
             '--check-emr-status-every', dest='check_emr_status_every',
             action='store', default=30
+        )
+        self.option_parser.add_option(
+            '--no-output', dest='no_output',
+            action='store_true', default=False
         )
 
         # logging options

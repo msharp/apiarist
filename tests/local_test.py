@@ -11,9 +11,16 @@ class LocalTest(unittest.TestCase):
         if 'APIARIST_TMP_DIR' in os.environ:
             del os.environ['APIARIST_TMP_DIR']
 
-    def as_a_job_name_test(self):
+    def has_a_job_name_test(self):
         r = LocalRunner('TestJob', input_path='/foo/bar')
         self.assertEqual(r.job_name, 'TestJob')
+
+    def set_no_output_test(self):
+        r = LocalRunner('TestJob', input_path='/foo/bar',
+                        no_output=True)
+        self.assertFalse(r.stream_output)
+        r = LocalRunner('TestJob', input_path='/foo/bar')
+        self.assertTrue(r.stream_output)
 
     def get_local_scratch_dir_test(self):
         r = LocalRunner('TestJob', input_path='/foo/bar')

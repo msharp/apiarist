@@ -31,7 +31,7 @@ class LocalRunner():
 
     def __init__(self, job_name=None, input_path=None,
                  hive_query=None, output_dir=None,
-                 temp_dir=None):
+                 temp_dir=None, no_output=False):
 
         #  TODO test for Hive installation
 
@@ -41,6 +41,7 @@ class LocalRunner():
 
         # I/O for job data
         self.scratch_dir = self.get_local_scratch_dir(temp_dir)
+        self.stream_output = (not no_output)
 
         self.data_path = self.scratch_dir + 'data'
         self.table_path = self.scratch_dir + 'table'
@@ -94,8 +95,9 @@ class LocalRunner():
         cat = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                stderr=subprocess.STDOUT, shell=True)
         stdout, stderr = cat.communicate()
-        logger.info("\nQuery output ------->\n")
-        print(stdout)  # query results to STDOUT
+        if self.stream_output:
+            logger.info("\nQuery output ------->\n")
+            print(stdout)  # query results to STDOUT
 
     def _generate_hive_script(self):
         """Write the HQL to a local (temp) file
