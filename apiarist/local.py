@@ -62,7 +62,8 @@ class LocalRunner():
         elif 'APIARIST_TMP_DIR' in os.environ:
             tmp_path = os.environ['APIARIST_TMP_DIR'] + self.job_id + '/'
         else:
-            tmp_path = "~/.apiarist/" + self.job_id + '/'
+            tmp_path = "{0}/.apiarist/{1}/".format(os.environ['HOME'],
+                                                   self.job_id)
         return tmp_path
 
     def _ensure_local_scratch_dir_exists(self):
