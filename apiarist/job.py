@@ -19,8 +19,9 @@ import re
 from apiarist.launch import HiveJobLauncher
 from apiarist.script import HiveQuery
 from apiarist.conf import _READ_ARGS_FROM_SYS_ARGV
+from apiarist import InvalidHiveJobException
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class HiveJob(HiveJobLauncher):
@@ -45,7 +46,13 @@ class HiveJob(HiveJobLauncher):
 
     def plain_query(self):
         """Condense spaces"""
-        return re.sub(r"\s+", " ", self.query()).strip()
+        try:
+            q = self.query()
+            return re.sub(r"\s+", " ", q).strip()
+        except TypeError, e:
+            logger.error("Could not get HiveQuery content")
+            logger.debug(e)
+            raise InvalidHiveJobException("Could not get HiveQuery content")
 
     def _job_name(self):
         return self.__class__.__name__

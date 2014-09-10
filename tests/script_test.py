@@ -5,6 +5,7 @@ import os
 import unittest
 from apiarist.script import HiveQuery
 from apiarist.job import HiveJob
+from apiarist import InvalidHiveJobException
 from apiarist.serde import Serde
 from apiarist.script import get_script_file_location
 
@@ -47,7 +48,7 @@ class HiveQueryTest(unittest.TestCase):
         return HiveQuery(job)
 
     def must_pass_hivejob_object_test(self):
-        self.assertRaises(TypeError, HiveQuery, 'foo')
+        self.assertRaises(InvalidHiveJobException, HiveQuery, 'foo')
 
     def raise_table_name_error_test(self):
         self.assertRaises(ValueError,

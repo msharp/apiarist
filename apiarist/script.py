@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from apiarist.serde import Serde
+from apiarist import InvalidHiveJobException
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def generate_hive_script_file(script, local_script_file):
@@ -53,22 +57,35 @@ class HiveQuery(object):
     def __init__(self, hive_job):
         """Initalise the query with a HiveJob object
         """
+        logger.debug("initialising HiveQuery")
         try:
+            logger.debug("setting input table name")
             self.table_name = hive_job.table()
+            logger.debug("setting output table name")
             self.results_table_name = self.table_name + "_results"
-            self.query = hive_job.plain_query()
+            logger.debug("setting input columns")
             self.input_columns = hive_job.input_columns()
+            logger.debug("setting output columns")
             self.output_columns = hive_job.output_columns()
+            logger.debug("setting input control characters")
             self.input_control_chars = (hive_job.INFILE_DELIMITER_CHAR,
                                         hive_job.INFILE_QUOTE_CHAR,
                                         hive_job.INFILE_ESCAPE_CHAR
                                         )
+            logger.debug("setting output control characters")
             self.output_control_chars = (hive_job.OUTFILE_DELIMITER_CHAR,
                                          hive_job.OUTFILE_QUOTE_CHAR,
                                          hive_job.OUTFILE_ESCAPE_CHAR
                                          )
-        except AttributeError:
-            raise TypeError("HiveQuery expects a HiveJob-compatible oject")
+            logger.debug("setting plain qeury content")
+            self.query = hive_job.plain_query()
+
+        except AttributeError, e:
+            logger.error("Error encoutered setting query attributes")
+            logger.error("Check the logic in your job")
+            logger.error(e)
+            ex = "HiveQuery expects a HiveJob-compatible oject"
+            raise InvalidHiveJobException(ex)
 
         # ensure we have a semi-colon to terminate the select query
         if self.query[-1:] != ';':

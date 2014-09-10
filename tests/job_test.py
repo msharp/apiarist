@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-from apiarist.job import HiveJob
+from apiarist.job import HiveJob, InvalidHiveJobException
 from apiarist.job import HiveQuery
 
 
@@ -26,6 +26,11 @@ class MockJob(HiveJob):
         super(MockJob, self).configure_options()
         self.add_passthrough_option('--passthrough-option',
                                     dest='popt')
+
+
+class BrokenMockJob(MockJob):
+    def query(self):
+        return None
 
 
 class HiveJobTest(unittest.TestCase):
@@ -71,3 +76,7 @@ class HiveJobTest(unittest.TestCase):
         j = MockJob(['foo'])
         self.assertEqual(j.INFILE_ESCAPE_CHAR, "\\\\")
         self.assertEqual(j.OUTFILE_ESCAPE_CHAR, "\\\\")
+
+    def broken_query_raises_invalid_job_error_test(self):
+        j = BrokenMockJob(['foo'])
+        self.assertRaises(InvalidHiveJobException, j.plain_query)
