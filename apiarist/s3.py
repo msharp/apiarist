@@ -39,6 +39,7 @@ def copy_s3_file(source, destination,
     dest_bucket, dest_key = parse_s3_uri(destination)
     source_bucket, source_key = parse_s3_uri(source)
     conn = get_conn(aws_access_key_id, aws_secret_access_key)
+    logger.info("Copying S3 source files. This may take some time.")
     if is_dir(source):
         s_bkt = conn.get_bucket(source_bucket)
         d_bkt = conn.get_bucket(dest_bucket)
@@ -47,18 +48,18 @@ def copy_s3_file(source, destination,
             raise MissingDataException("supplied path is empty")
         for i, k in enumerate(get_bucket_list(s_bkt, source_key)):
             new_key = dest_key + str(i)
-            logger.info("copying {0}/{1} to {2}/{3}".format(source_bucket,
-                                                            k.key,
-                                                            dest_bucket,
-                                                            new_key))
+            logger.debug("copying {0}/{1} to {2}/{3}".format(source_bucket,
+                                                             k.key,
+                                                             dest_bucket,
+                                                             new_key))
             d_bkt.copy_key(new_key, source_bucket, k.key)
         return destination + '/'
     else:
         bkt = conn.get_bucket(dest_bucket)
-        logger.info("copying {0}/{1} to {2}/{3}".format(source_bucket,
-                                                        source_key,
-                                                        dest_bucket,
-                                                        dest_key))
+        logger.debug("copying {0}/{1} to {2}/{3}".format(source_bucket,
+                                                         source_key,
+                                                         dest_bucket,
+                                                         dest_key))
         return bkt.copy_key(dest_key, source_bucket, source_key)
 
 
