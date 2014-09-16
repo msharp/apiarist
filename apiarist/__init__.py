@@ -16,7 +16,7 @@
 and output CSV files (or other delimiters)
 """
 
-__version__ = '0.1.8'
+__version__ = '0.1.10'
 
 
 class InvalidHiveJobException(Exception):

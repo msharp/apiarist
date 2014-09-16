@@ -50,16 +50,20 @@ class HiveJobLauncher(object):
                                           add_help_option=False)
         self.configure_options()
 
-        # build options from args provided
-        # this may load the yaml config also
-        self.options, rem_args = process_args(self.option_parser, args)
+        # this class is instantiated without args
+        # when run in standalone/command-line mode
+        if args:
 
-        #  after named args have been removed by OptionParser
-        #  only remaining argument is the location of input data
-        try:
-            self.input_data = rem_args[0]
-        except IndexError:
-            raise ArgumentMissingError("must provide path to source data")
+            # build options from args provided
+            # this may load the yaml config also
+            self.options, rem_args = process_args(self.option_parser, args)
+
+            #  after named args have been removed by OptionParser
+            #  only remaining argument is the location of input data
+            try:
+                self.input_data = rem_args[0]
+            except IndexError:
+                raise ArgumentMissingError("must provide path to source data")
 
         # Make it possible to redirect stdin, stdout, and stderr, for testing
         # TODO create sandbox()

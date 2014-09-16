@@ -18,8 +18,8 @@ class HiveJobLauncherTest(unittest.TestCase):
 
     def supply_path_to_data_error_test(self):
         sys.argv = []  # override argv when passing script arg to nose
-        self.assertRaises(ArgumentMissingError, HiveJobLauncher,
-                          ('TestJob', []))
+        self.assertRaises(ArgumentMissingError,
+                          HiveJobLauncher, 'TestJob', [])
 
     def supply_output_dir_test(self):
         d = 's3://path/to/ouput-data/'

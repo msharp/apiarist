@@ -192,7 +192,7 @@ class EMRRunner():
 
         while True:
             # don't antagonize EMR's throttling
-            logger.info('Waiting {0} seconds'.format(chk_status_freq))
+            logger.debug('Waiting {0} seconds'.format(chk_status_freq))
             time.sleep(chk_status_freq)
 
             job_flow = conn.describe_jobflow(jobid)
