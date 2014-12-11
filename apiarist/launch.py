@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Class to manage set up and running of Hivejobs
+"""
+Class to manage set up and running of Hivejobs
 """
 import sys
 import logging
@@ -76,7 +77,8 @@ class HiveJobLauncher(object):
 
     @classmethod
     def set_up_logging(cls, quiet=False, verbose=False, stream=None):
-        """Set up logging when running from the command line.
+        """
+        Set up logging when running from the command line.
         This will also set up a null log handler for boto, so we don't get
         warnings if boto tries to log about throttling and whatnot.
         """
@@ -89,7 +91,8 @@ class HiveJobLauncher(object):
         log_to_null(name='boto')
 
     def run_job(self):
-        """Run the job
+        """
+        Run the job
         """
         self.set_up_logging(quiet=self.options.quiet,
                             verbose=self.options.verbose,
@@ -100,7 +103,8 @@ class HiveJobLauncher(object):
             runner.run()
 
     def make_runner(self):
-        """Make a runner based on arguments provided
+        """
+        Make a runner based on arguments provided
         """
         if self.options.runner == 'emr':
             kwargs = self.emr_job_runner_kwargs()
@@ -149,7 +153,8 @@ class HiveJobLauncher(object):
         raise NotImplementedError
 
     def configure_options(self):
-        """Define the arguments for this script
+        """
+        Define the arguments for this script
         """
         # the running mode - local or EMR
         self.option_parser.add_option(
@@ -238,7 +243,8 @@ class HiveJobLauncher(object):
             )
 
     def add_passthrough_option(self, *args, **kwargs):
-        """Add a section in the Job to specify options passed to
+        """
+        Add a section in the Job to specify options passed to
         the job to compile the query.
 
         Override the `configure_options` method in your job.
@@ -256,5 +262,7 @@ class HiveJobLauncher(object):
 
     @classmethod
     def _usage(cls):
-        """Command line usage string for this class"""
+        """
+        Command line usage string for this class
+        """
         return ("usage: python [script path|executable path|--help]")

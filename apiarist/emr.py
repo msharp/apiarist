@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Class to manage EMR config and job running
+"""
+Class to manage EMR config and job running
 """
 import os
 import hashlib
@@ -179,7 +180,8 @@ class EMRRunner():
     # wait for job and log status (from mrjob)
     # this method extracted from mrjob.job
     def _wait_for_job_to_complete(self, conn, jobid):
-        """Wait for the job to complete, and raise an exception if
+        """
+        Wait for the job to complete, and raise an exception if
         the job failed.
 
         Also grab log URI from the job status (since we may not know it)

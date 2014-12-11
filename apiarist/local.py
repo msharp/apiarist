@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Class to manage local job execution
+"""
+Class to manage local job execution
 """
 import os
 import subprocess
@@ -25,7 +26,8 @@ logger = logging.getLogger(__name__)
 
 
 class LocalRunner():
-    """Handles running the Hive script on
+    """
+    Handles running the Hive script on
     a local Hive installation.
     """
 
@@ -71,13 +73,14 @@ class LocalRunner():
             os.makedirs(self.scratch_dir)
 
     def run(self):
-        """Run the hive query against a local hive installation (*nix only)
+        """
+        Run the hive query against a local hive installation (*nix only)
         """
         # prepare files
         self._ensure_local_scratch_dir_exists()
         self._copy_input_data()
         self._generate_hive_script()
-        # execute against hive server
+        # execute against local hive server
         cmd = ["hive -f {}".format(self.local_script_file)]
         logger.info("running HIVE script with: {}".format(cmd))
         hql = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
@@ -101,7 +104,8 @@ class LocalRunner():
             print(stdout)  # query results to STDOUT
 
     def _generate_hive_script(self):
-        """Write the HQL to a local (temp) file
+        """
+        Write the HQL to a local (temp) file
         """
         hq = self.hive_query.local_hive_script(self.data_path,
                                                self.output_dir,
@@ -109,7 +113,8 @@ class LocalRunner():
         generate_hive_script_file(hq, self.local_script_file)
 
     def _generate_job_id(self):
-        """Create a unique job run identifier
+        """
+        Create a unique job run identifier
         """
         run_id = self.job_name + str(time.time())
         digest = hashlib.md5(run_id).hexdigest()
@@ -118,14 +123,22 @@ class LocalRunner():
     #  hooks for the with statement ###
 
     def __enter__(self):
-        """Don't do anything special at start of with block"""
+        """
+        Don't do anything special at start of with block
+        """
         s = self
         return s
 
     def __exit__(self, type, value, traceback):
-        """Call self.cleanup() at end of with block."""
+        """
+        Call self.cleanup() at end of with block.
+        """
         self.cleanup()
 
     def cleanup(self):
-        # TODO _ remove scratch dirs?
-        pass
+        """
+        cleanup the temp/scratch files that are
+        used to set up the hive tables
+        """
+        os.remove(self.local_script_file)
+        shutil.rmtree(self.scratch_dir)
