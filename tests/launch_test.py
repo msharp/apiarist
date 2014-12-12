@@ -107,3 +107,10 @@ class HiveJobLauncherTest(unittest.TestCase):
         j = HiveJobLauncher('TestJob', [self.DATA_PATH,
                                         '--no-output'])
         self.assertTrue(j.options.no_output)
+
+    def tell_local_job_to_retain_hive_table_test(self):
+        j = HiveJobLauncher('TestJob', [self.DATA_PATH])
+        self.assertFalse(j.options.retain_hive_table)
+        j = HiveJobLauncher('TestJob', [self.DATA_PATH,
+                                        '--retain-hive-table'])
+        self.assertTrue(j.options.retain_hive_table)

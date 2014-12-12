@@ -31,9 +31,9 @@ class LocalRunner():
     a local Hive installation.
     """
 
-    def __init__(self, job_name=None, input_path=None,
-                 hive_query=None, output_dir=None,
-                 temp_dir=None, no_output=False):
+    def __init__(self, job_name=None,
+                 input_path=None, hive_query=None, output_dir=None,
+                 temp_dir=None, no_output=False, retain_hive_table=False):
 
         #  TODO test for Hive installation
 
@@ -57,6 +57,7 @@ class LocalRunner():
         self.hive_query = hive_query
         self.local_script_file = get_script_file_location(self.job_id,
                                                           self.scratch_dir)
+        self.retain_hive_table = retain_hive_table
 
     def get_local_scratch_dir(self, temp_dir=None):
         if temp_dir:
@@ -140,5 +141,6 @@ class LocalRunner():
         cleanup the temp/scratch files that are
         used to set up the hive tables
         """
-        os.remove(self.local_script_file)
-        shutil.rmtree(self.scratch_dir)
+        if not self.retain_hive_table:
+            os.remove(self.local_script_file)
+            shutil.rmtree(self.scratch_dir)

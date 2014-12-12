@@ -123,6 +123,7 @@ class HiveJobLauncher(object):
             'job_name': self.job_name,
             'temp_dir': self.options.scratch_dir,
             'no_output': self.options.no_output,
+            'retain_hive_table': self.options.retain_hive_table,
             }
 
     def emr_job_runner_kwargs(self):
@@ -239,6 +240,13 @@ class HiveJobLauncher(object):
             )
         self.option_parser.add_option(
             '--verbose', dest='verbose',
+            action='store_true', default=False
+            )
+
+        # retain the Hive table (don't delete scratch directory)
+        # this is useful for running some ad-hoc stuff
+        self.option_parser.add_option(
+            '--retain-hive-table', dest='retain_hive_table',
             action='store_true', default=False
             )
 

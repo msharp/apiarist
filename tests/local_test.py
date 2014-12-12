@@ -33,3 +33,10 @@ class LocalTest(unittest.TestCase):
         os.environ['APIARIST_TMP_DIR'] = '/baz/foo/'
         r = LocalRunner('TestJob', input_path='/foo/bar')
         self.assertEqual(r.scratch_dir, '/baz/foo/' + r.job_id + '/')
+
+    def test_set_retain_hive_table(self):
+        r = LocalRunner('TestJob', input_path='/foo/bar')
+        self.assertFalse(r.retain_hive_table)
+        r = LocalRunner('TestJob', input_path='/foo/bar',
+                        retain_hive_table=True)
+        self.assertTrue(r.retain_hive_table)

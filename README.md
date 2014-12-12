@@ -112,6 +112,7 @@ Various options can be passed to control the running of the job. In particular t
   - `--check-emr-status-every` configure the interval between each status check on a running job.
   - `--quiet` less logging
   - `--verbose` more logging
+  - `--retain-hive-table` for local mode, keep the hive table to run further ad-hoc queries.
 
 ### Configuration file
 
@@ -127,11 +128,11 @@ runners:
   emr:
     aws_access_key_id: AABBCCDDEEFF11223344
     aws_secret_access_key: AABBCCDDEEFF1122334AABBCCDDEEFF
-    ec2_master_instance_type: c1.medium
     ec2_instance_type: m3.xlarge
     num_ec2_instances: 5
     s3_scratch_uri: s3://myjobs/scratchspace/
-    hive_version: 0.11.3
+    ami_version: 3.2.1
+    hive_version: 0.13.1
   local:
     local_scratch_dir: /home/apiarist/temp/
 ```
