@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" Write simple Hive jobs to run on AWS/EMR
+"""
+Write simple Hive jobs to run on AWS/EMR
 and output CSV files (or other delimiters)
 """
 
-__version__ = '0.1.10'
+__version__ = '0.1.11'
 
 
 class InvalidHiveJobException(Exception):
