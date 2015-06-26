@@ -53,6 +53,14 @@ class ConfigFileTest(unittest.TestCase):
         self.assert_contains_args(self.args,
                                   ['--ami-version', '1.0.0'])
 
+    def iam_instance_profile_test(self):
+        self.assert_contains_args(self.args,
+                                  ['--iam-instance-profile', 'EMR_EC2_OtherRole'])
+
+    def iam_service_role_test(self):
+        self.assert_contains_args(self.args,
+                                  ['--iam-service-role', 'EMR_OtherRole'])
+
     def s3_log_uri_test(self):
         self.assert_contains_args(self.args,
                                   ['--s3-log-uri', 's3://foo/bar/'])

@@ -108,11 +108,17 @@ Various options can be passed to control the running of the job. In particular t
   - `--num-ec2-instances` number of instances (including the master). Default is `2`.
   - `--ami-version` the ami version. Default is `latest`.
   - `--hive-version`. Default is `latest`.
+  - `--iam-instance-profile` role for the EC2 instances on the cluster. Default is `EMR_EC2_DefaultRole`.
+  - `--iam-service-role` role for the Amazon EMR service on the cluster. Default is `EMR_DefaultRole`.
   - `--s3-sync-wait-time` to configure how long to wait after uploading files to S3.
   - `--check-emr-status-every` configure the interval between each status check on a running job.
   - `--quiet` less logging
   - `--verbose` more logging
   - `--retain-hive-table` for local mode, keep the hive table to run further ad-hoc queries.
+
+*NOTE: IAM roles will be mandatory for all users after June 30, 2015. These are set via the `--iam-instance-profile` and `--iam-service-role` options above.*
+
+*See [Configure IAM Roles for Amazon EMR](http://docs.aws.amazon.com/ElasticMapReduce/latest/DeveloperGuide/emr-iam-roles.html)*
 
 ### Configuration file
 

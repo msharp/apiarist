@@ -60,6 +60,9 @@ class YamlConfig():
         'hive_version': '--hive-version',
         'ami_version': '--ami-version',
 
+        'iam_instance_profile': '--iam-instance-profile',  # default: EMR_EC2_DefaultRole
+        'iam_service_role': '--iam-service-role',  # default: EMR_DefaultRole
+
         'ec2_master_instance_type': '--ec2-master-instance-type',
         'ec2_instance_type': '--ec2-instance-type',
         'num_ec2_instances': '--num-ec2-instances',
