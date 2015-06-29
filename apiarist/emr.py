@@ -37,6 +37,7 @@ class EMRRunner():
                  output_dir=None, scratch_uri=None, log_path=None,
                  ami_version=None, hive_version=None, num_instances=None,
                  master_instance_type=None, slave_instance_type=None,
+                 iam_instance_profile=None, iam_service_role=None,
                  aws_access_key_id=None, aws_secret_access_key=None,
                  s3_sync_wait_time=5, check_emr_status_every=30,
                  temp_dir=None):
@@ -83,6 +84,8 @@ class EMRRunner():
         self.ami_version = ami_version
         self.hive_version = hive_version
         self.num_instances = num_instances
+        self.iam_instance_profile = iam_instance_profile
+        self.iam_service_role = iam_service_role
 
         # S3 'scratch' directory
         if scratch_uri:
@@ -165,7 +168,9 @@ class EMRRunner():
             master_instance_type=self.master_instance_type,
             slave_instance_type=self.slave_instance_type,
             ami_version=self.ami_version,
-            num_instances=self.num_instances)
+            num_instances=self.num_instances,
+            job_flow_role=self.iam_instance_profile,
+            service_role=self.iam_service_role)
 
         conn.add_jobflow_steps(jobid, [setup_step, run_step])
 

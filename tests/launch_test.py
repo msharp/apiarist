@@ -63,6 +63,22 @@ class HiveJobLauncherTest(unittest.TestCase):
         j = HiveJobLauncher('TestJob', [self.DATA_PATH, '--hive-version', v])
         self.assertEqual(v, j.options.hive_version)
 
+    def supply_iam_instance_profile_test(self):
+        # defaults to 'EMR_EC2_DefaultRole'
+        j = HiveJobLauncher('TestJob', [self.DATA_PATH])
+        self.assertEqual('EMR_EC2_DefaultRole', j.options.iam_instance_profile)
+        iip = 'EMR_EC2_OtherRole'
+        j = HiveJobLauncher('TestJob', [self.DATA_PATH, '--iam-instance-profile', iip])
+        self.assertEqual(iip, j.options.iam_instance_profile)
+
+    def supply_iam_service_role_test(self):
+        # defaults to 'EMR_DefaultRole'
+        j = HiveJobLauncher('TestJob', [self.DATA_PATH])
+        self.assertEqual('EMR_DefaultRole', j.options.iam_service_role)
+        isr = 'EMR_OtherRole'
+        j = HiveJobLauncher('TestJob', [self.DATA_PATH, '--iam-service-role', isr])
+        self.assertEqual(isr, j.options.iam_service_role)
+
     def this_class_has_no_query_test(self):
         j = HiveJobLauncher('TestJob', ['s3://path/to/data/'])
         self.assertRaises(NotImplementedError, j.hive_query)

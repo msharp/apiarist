@@ -144,6 +144,8 @@ class HiveJobLauncher(object):
             'num_instances': self.options.num_instances,
             'ami_version': self.options.ami_version,
             'hive_version': self.options.hive_version,
+            'iam_instance_profile': self.options.iam_instance_profile,
+            'iam_service_role': self.options.iam_service_role,
             's3_sync_wait_time': self.options.s3_sync_wait_time,
             'check_emr_status_every': self.options.check_emr_status_every,
             'temp_dir': self.options.scratch_dir
@@ -197,7 +199,7 @@ class HiveJobLauncher(object):
             action='store', default=False
             )
 
-        # hadoop config, job concurrency, and instance sizes
+        # hadoop config, job concurrency, instance sizes and IAM roles
         self.option_parser.add_option(
             '--ec2-master-instance-type', dest='master_instance_type',
             action='store', default=False
@@ -217,6 +219,14 @@ class HiveJobLauncher(object):
         self.option_parser.add_option(
             '--hive-version', dest='hive_version',
             action='store', default='latest'
+            )
+        self.option_parser.add_option(
+            '--iam-instance-profile', dest='iam_instance_profile',
+            action='store', default='EMR_EC2_DefaultRole'
+            )
+        self.option_parser.add_option(
+            '--iam-service-role', dest='iam_service_role',
+            action='store', default='EMR_DefaultRole'
             )
 
         # job runner options
