@@ -17,7 +17,7 @@ Write simple Hive jobs to run on AWS/EMR
 and output CSV files (or other delimiters)
 """
 
-__version__ = '0.1.11'
+__version__ = '0.1.12'
 
 
 class InvalidHiveJobException(Exception):
