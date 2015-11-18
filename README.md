@@ -71,7 +71,7 @@ This serde also allows configuration of the delimiter, quoting character, and es
 
 You can override the defaults in your job. You should be careful about escape sequences when doing so because the value needs to be written into a file.
 
-It is best to definie them as string literals. Example:
+It is best to define them as string literals. Example:
 
 ```python
 from apiarist.job import HiveJob
@@ -183,6 +183,22 @@ def query(self):
     q += "GROUP BY YEAR(day), weekday;"
     return q
 ```
+
+## Querying Hive locally
+
+When developing a new query, you may want to fire up Hive to run it and test your syntax.
+
+To generate the Hive table, run your job locally with the `--retain-hive-table` argument. After it terminates, run `hive` from the command line and you will get a Hive prompt.
+
+Because `apiarist` uses a serde to interpret the text files for Hive, you will need to add this serde to the Hive session before your table can be read. 
+
+The command to do this will be something like:
+
+    hive> ADD JAR /Users/max/.virtualenvs/apiarist/lib/python2.7/site-packages/apiarist/jars/csv-serde-1.1.2-0.11.0-all.jar;
+
+Obviously, your path will be different, depending on where apiarist is installed.
+
+Once this is done you can start running interactive HiveQL queries on your text data.
 
 ## License
 
