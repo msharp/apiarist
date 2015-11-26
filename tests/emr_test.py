@@ -10,6 +10,9 @@ class EmrTest(unittest.TestCase):
     # not many tests here
     # need to find a way to mock AWS
 
+    def setUp(self):
+        os.environ['S3_SCRATCH_URI'] = 's3://foo/bar/'
+
     def has_a_job_name_test(self):
         r = EMRRunner('TestJob')
         self.assertEqual(r.job_name, 'TestJob')
@@ -19,7 +22,8 @@ class EmrTest(unittest.TestCase):
         del os.environ['AWS_SECRET_ACCESS_KEY']
         k, s = 'foo', 'bar'
         r = EMRRunner('TestJob',
-                      aws_access_key_id=k, aws_secret_access_key=s)
+                      aws_access_key_id=k,
+                      aws_secret_access_key=s)
         self.assertEqual(r.aws_access_key_id, k)
         self.assertEqual(r.aws_secret_access_key, s)
         self.assertEqual(os.environ['AWS_ACCESS_KEY_ID'], k)

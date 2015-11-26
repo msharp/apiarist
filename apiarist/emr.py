@@ -161,7 +161,7 @@ class EMRRunner():
         setup_step = InstallHiveStep(self.hive_version)
         run_step = HiveStep(self.job_name, self.script_path)
 
-        jobid = conn.run_jobflow(
+        cluster_id = conn.run_jobflow(
             self.job_name,
             self.log_path,
             action_on_failure='CANCEL_AND_WAIT',
@@ -172,9 +172,11 @@ class EMRRunner():
             job_flow_role=self.iam_instance_profile,
             service_role=self.iam_service_role)
 
-        conn.add_jobflow_steps(jobid, [setup_step, run_step])
+        conn.add_jobflow_steps(cluster_id, [setup_step, run_step])
 
-        self._wait_for_job_to_complete(conn, jobid)
+        logger.info("Job started on cluster {0}".format(cluster_id))
+
+        self._wait_for_job_to_complete(conn, cluster_id)
 
         logger.info("Output file is in: {0}".format(self.output_path))
 
@@ -182,9 +184,9 @@ class EMRRunner():
         # TODO _ remove scratch dirs?
         logger.info("cleaning up ... ")
 
-    # wait for job and log status (from mrjob)
+    # wait for job and log status 
     # this method extracted from mrjob.job
-    def _wait_for_job_to_complete(self, conn, jobid):
+    def _wait_for_job_to_complete(self, conn, cluster_id):
         """
         Wait for the job to complete, and raise an exception if
         the job failed.
@@ -202,37 +204,30 @@ class EMRRunner():
             logger.debug('Waiting {0} seconds'.format(chk_status_freq))
             time.sleep(chk_status_freq)
 
-            job_flow = conn.describe_jobflow(jobid)
+            cluster = conn.describe_cluster(cluster_id)
 
-            job_state = job_flow.state
-            reason = getattr(job_flow, 'laststatechangereason', '')
+            job_state = cluster.status.state
+            reason = getattr(
+                getattr(cluster.status, 'statechangereason', None),
+                'message', '')
 
             # find all steps belonging to us, and get their state
             step_states = []
             running_step_name = ''
             total_step_time = 0.0
             step_nums = []  # step numbers belonging to us. 1-indexed
-            # lg_step_num_mapping = {}
 
-            steps = job_flow.steps or []
-            # latest_lg_step_num = 0
+            steps = conn.list_steps(cluster.id).steps or []
             for i, step in enumerate(steps):
-                # if LOG_GENERATING_STEP_NAME_RE.match(
-                # posixpath.basename(getattr(step, 'jar', ''))):
-                #    latest_lg_step_num += 1
 
                 # ignore steps belonging to other jobs
                 if not step.name.startswith(self.job_name):
                     continue
 
                 step_nums.append(i + 1)
-                # if LOG_GENERATING_STEP_NAME_RE.match(
-                # posixpath.basename(getattr(step, 'jar', ''))):
-                #    lg_step_num_mapping[i + 1] = latest_lg_step_num
 
-                step.state = step.state
-                step_states.append(step.state)
-                if step.state == 'RUNNING':
+                step_states.append(step.status.state)
+                if step.status.state == 'RUNNING':
                     running_step_name = step.name
 
                 if hasattr(step, 'startdatetime') and \
@@ -259,73 +254,35 @@ class EMRRunner():
             # keep track of how long we've been waiting
             running_time = time.time() - emr_job_start
 
+            # logging message values
+            loginfo = (int(running_time), job_state, reason, running_step_name)
+
             # otherwise, we can print a status message
             if running_step_name:
-                logger.info("Job launched {0} ago, status {1}: {2} ({3})".
-                            format(int(running_time), job_state, reason,
-                                   running_step_name))
-
-                # if self._show_tracker_progress:
-                #    try:
-                #        tracker_handle = urllib2.urlopen(self._tracker_url)
-                #        tracker_page = ''.join(tracker_handle.readlines())
-                #        tracker_handle.close()
-                #        # first two formatted percentages, map then reduce
-                #        map_complete, reduce_complete = [
-                #            float(complete) for complete
-                #            in JOB_TRACKER_RE.findall(tracker_page)[:2]]
-                #        logger.info(' map %3d%% reduce %3d%%' % (
-                #                 map_complete, reduce_complete))
-                #    except:
-                #       logger.info('Unable to load progress from job tracker')
-                #        # turn off progress for rest of job
-                #        self._show_tracker_progress = False
-                # once a step is running, it's safe to set up the ssh tunnel to
-                # the job tracker
-                # job_host = getattr(job_flow, 'masterpublicdnsname', None)
-                # if job_host and opts['ssh_tunnel_to_job_tracker']:
-                #    self.setup_ssh_tunnel_to_job_tracker(job_host)
+                logger.info("Job launched {0} ago. "
+                            " Status {1}: {2} ({3})".
+                            format(*loginfo))
 
             # other states include STARTING and SHUTTING_DOWN
             elif reason:
-                logger.info("Job launched {0} ago, status {1}: {2}".format(
-                    int(running_time), job_state, reason))
+                logger.info("Job launched {0} ago. "
+                            "Status {1}: {2}".format(*loginfo))
             else:
-                logger.info("Job launched {0} ago, status {1}".format(
-                    int(running_time), job_state))
+                logger.info("Job launched {0} ago. "
+                            "Status {1}".format(*loginfo))
 
         if success:
-            logger.info('Job completed.')
-            logger.info("Running time was {0}".format(total_step_time))
-            logger.info("(excludes time spent waiting for the EC2 instances)")
+            logger.info("Job completed on cluster {}.".format(cluster.id))
+            logger.info("Running time was {0} "
+                        "(excludes time spent waiting for the EC2 instances)".
+                        format(total_step_time))
         else:
-            msg = 'Job on job flow {0} failed with status {1}: {2}'.format(
-                  job_flow.jobflowid, job_state, reason)
+            msg = "Job on cluster {0} failed with status {1}: {2}".format(
+                  cluster.id, job_state, reason)
             logger.info(msg)
 
-            cause = False
-            # TODO resurrect this code to recover reason for failure
-            # if self._s3_job_log_uri:
-            #    logger.info('Logs are in %s' % self._s3_job_log_uri)
-            # look for a Python traceback
-            # cause = self._find_probable_cause_of_failure(
-
-            if cause:
-                # log cause, and put it in exception
-                cause_msg = []  # lines to log and put in exception
-                cause_msg.append('Probable cause of failure (from {0}):'.format
-                                 (cause['log_file_uri']))
-                cause_msg.extend(line.strip('\n') for line in cause['lines'])
-                if cause['input_uri']:
-                    cause_msg.append('(while reading from {0})'.format(
-                                     cause['input_uri']))
-                for line in cause_msg:
-                    logger.info(line)
-
-                # add cause_msg to exception message
-                msg += '\n' + '\n'.join(cause_msg) + '\n'
-
             raise Exception(msg)
+
 
 #  AWS Date-time parsing
 
