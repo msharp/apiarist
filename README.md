@@ -1,6 +1,6 @@
 # Apiarist
 
-A python 2.5+ package for defining Hive queries which can be run on AWS EMR.
+A python 2.6+ package for defining Hive queries which can be run on AWS EMR.
 
 It is, in its current form, only addressing a very narrow use-case. 
 Reading large text files into a Hive database, running a Hive query, and outputting the results to a text file.
