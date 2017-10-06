@@ -5,7 +5,11 @@ import sys
 import unittest
 from apiarist.launch import HiveJobLauncher
 from apiarist.launch import ArgumentMissingError
-from conf_test import CONFIG_PATH
+
+try:
+    from conf_test import CONFIG_PATH
+except:
+    from .conf_test import CONFIG_PATH
 
 
 class HiveJobLauncherTest(unittest.TestCase):

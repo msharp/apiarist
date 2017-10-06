@@ -20,6 +20,7 @@ import hashlib
 import time
 import shutil
 import logging
+import six
 from apiarist.script import generate_hive_script_file, get_script_file_location
 
 logger = logging.getLogger(__name__)
@@ -118,7 +119,7 @@ class LocalRunner():
         Create a unique job run identifier
         """
         run_id = self.job_name + str(time.time())
-        digest = hashlib.md5(run_id).hexdigest()
+        digest = hashlib.md5(six.b(run_id)).hexdigest()
         return 'hj-' + digest
 
     #  hooks for the with statement ###

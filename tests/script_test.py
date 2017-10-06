@@ -164,6 +164,6 @@ class HiveQueryTest(unittest.TestCase):
                                  's3://foo/bar/',
                                  (r'\t', r'\"', r'\\')
                                  )
-        print ddl
-        print tbl
+        print(ddl)
+        print(tbl)
         self.assertEqual(tbl, ddl)

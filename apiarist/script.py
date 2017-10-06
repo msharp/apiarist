@@ -80,7 +80,7 @@ class HiveQuery(object):
             logger.debug("setting plain qeury content")
             self.query = hive_job.plain_query()
 
-        except AttributeError, e:
+        except AttributeError as e:
             logger.error("Error encoutered setting query attributes")
             logger.error("Check the logic in your job")
             logger.error(e)

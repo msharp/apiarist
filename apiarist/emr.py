@@ -20,6 +20,7 @@ import re
 import time
 import datetime
 import logging
+import six
 
 import boto
 from boto.emr.step import HiveStep
@@ -123,7 +124,7 @@ class EMRRunner():
         """Create a unique job run identifier
         """
         run_id = self.job_name + str(time.time())
-        digest = hashlib.md5(run_id).hexdigest()
+        digest = hashlib.md5(six.b(run_id)).hexdigest()
         return 'hj-' + digest
 
     def _generate_and_upload_hive_script(self):

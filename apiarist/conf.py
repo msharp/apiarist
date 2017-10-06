@@ -15,6 +15,7 @@
 """
 import sys
 import yaml
+import six
 
 # sentinel value; used when running HiveJob as a script
 _READ_ARGS_FROM_SYS_ARGV = '_READ_ARGS_FROM_SYS_ARGV'
@@ -93,7 +94,7 @@ class YamlConfig():
             return args  # no extra options available
 
         append_opts = []
-        for k, v in self.OPTION_MAP.iteritems():
+        for k, v in six.iteritems(self.OPTION_MAP):
             if k in opts and v not in args:
                 append_opts.append(v)
                 append_opts.append(opts[k])

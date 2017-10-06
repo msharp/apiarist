@@ -49,7 +49,7 @@ class HiveJob(HiveJobLauncher):
         try:
             q = self.query()
             return re.sub(r"\s+", " ", q).strip()
-        except TypeError, e:
+        except TypeError as e:
             logger.error("Could not get HiveQuery content")
             logger.debug(e)
             raise InvalidHiveJobException("Could not get HiveQuery content")
