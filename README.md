@@ -2,7 +2,7 @@
 
 A python 2.6+ package for defining Hive queries which can be run on AWS EMR.
 
-It is, in its current form, only addressing a very narrow use-case. 
+It is, in its current form, only addressing a very narrow use-case.
 Reading large text files into a Hive database, running a Hive query, and outputting the results to a text file.
 
 File format can be CSV or similar - other delimiters can be specified.
@@ -13,7 +13,7 @@ It is heavily modeled on [mrjob](https://github.com/Yelp/mrjob) and attempts to 
 
 ## A simple Hive job
 
-You will need to provide four methods: 
+You will need to provide four methods:
 
   - `table` the name of the table that your query will select from.
   - `input_columns` the columns in the source data file.
@@ -67,7 +67,7 @@ EMR:
 
 Hive allows custom a serde to be used to define data formats in tables. Apiarist uses [csv-serde](https://github.com/ogrodnek/csv-serde) to handle the CSV format properly.
 
-This serde also allows configuration of the delimiter, quoting character, and escape character. The defaults are, delimiter = `,`, quote character = `"`, escape character = `\`. 
+This serde also allows configuration of the delimiter, quoting character, and escape character. The defaults are, delimiter = `,`, quote character = `"`, escape character = `\`.
 
 You can override the defaults in your job. You should be careful about escape sequences when doing so because the value needs to be written into a file.
 
@@ -88,7 +88,7 @@ class EmailRecipientsSummary(HiveJob):
 ```
 
 ## Configuration
- 
+
 There are a range of options for providing job-specific configuration.
 
 ### Command-line options
@@ -100,6 +100,8 @@ Various options can be passed to control the running of the job. In particular t
   - `-r` the run mode. Either `local` or `emr` (default is `local`)
   - `--conf-path` use a YAML configuration file.
   - `--output-dir` where the results of the job will go.
+  - `--label` Alternate label for the job. Default is job's class name.
+  - `--owner` Who is running this job (if different from the current user). Default is `getpass.getuser()`, or `no_user` if that fails.
   - `--s3-scratch-uri` the bucket in which all the temporary files can go.
   - `--local-scratch-dir` this is where temporary file will be written.
   - `--s3-log-uri` write the logs to this location on S3.
@@ -190,7 +192,7 @@ When developing a new query, you may want to fire up Hive to run it and test you
 
 To generate the Hive table, run your job locally with the `--retain-hive-table` argument. After it terminates, run `hive` from the command line and you will get a Hive prompt.
 
-Because `apiarist` uses a serde to interpret the text files for Hive, you will need to add this serde to the Hive session before your table can be read. 
+Because `apiarist` uses a serde to interpret the text files for Hive, you will need to add this serde to the Hive session before your table can be read.
 
 The command to do this will be something like:
 

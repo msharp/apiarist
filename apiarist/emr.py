@@ -15,6 +15,7 @@
 Class to manage EMR config and job running
 """
 import os
+import getpass
 import hashlib
 import re
 import time
@@ -41,7 +42,7 @@ class EMRRunner():
                  iam_instance_profile=None, iam_service_role=None,
                  aws_access_key_id=None, aws_secret_access_key=None,
                  s3_sync_wait_time=5, check_emr_status_every=30,
-                 temp_dir=None):
+                 label=None, owner=None, temp_dir=None):
 
         self.job_name = job_name
         self.job_id = self._generate_job_id()
@@ -87,6 +88,12 @@ class EMRRunner():
         self.num_instances = num_instances
         self.iam_instance_profile = iam_instance_profile
         self.iam_service_role = iam_service_role
+        self.label = label
+        self.owner = owner
+
+        # give this job a unique name
+        self.job_key = self._make_unique_job_key(
+            label=self.label, owner=self.owner)
 
         # S3 'scratch' directory
         if scratch_uri:
@@ -127,6 +134,25 @@ class EMRRunner():
         digest = hashlib.md5(six.b(run_id)).hexdigest()
         return 'hj-' + digest
 
+    def _make_unique_job_key(self, label=None, owner=None):
+        """Come up with a useful unique ID for this job
+        """
+        # use the name of the job as the label if one wasn't explicitly
+        # specified
+        if not label:
+            label = self.job_name
+
+        if not owner:
+            try:
+                owner = getpass.getuser()
+            except:
+                owner = 'no_user'
+
+        now = datetime.datetime.utcnow()
+        return '%s.%s.%s.%06d' % (
+            label, owner,
+            now.strftime('%Y%m%d.%H%M%S'), now.microsecond)
+
     def _generate_and_upload_hive_script(self):
         self._generate_hive_script(self.data_path)
         upload_file_to_s3(self.local_script_file, self.script_path)
@@ -163,7 +189,7 @@ class EMRRunner():
         run_step = HiveStep(self.job_name, self.script_path)
 
         cluster_id = conn.run_jobflow(
-            self.job_name,
+            self.job_key,
             self.log_path,
             action_on_failure='CANCEL_AND_WAIT',
             master_instance_type=self.master_instance_type,
@@ -185,7 +211,7 @@ class EMRRunner():
         # TODO _ remove scratch dirs?
         logger.info("cleaning up ... ")
 
-    # wait for job and log status 
+    # wait for job and log status
     # this method extracted from mrjob.job
     def _wait_for_job_to_complete(self, conn, cluster_id):
         """
