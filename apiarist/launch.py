@@ -139,6 +139,8 @@ class HiveJobLauncher(object):
             'scratch_uri': self.options.scratch_uri,
             'log_path': self.options.log_uri,
             'job_name': self.job_name,
+            'label': self.options.label,
+            'owner': self.options.owner,
             'master_instance_type': master_instance_type,
             'slave_instance_type': slave_instance_type,
             'num_instances': self.options.num_instances,
@@ -172,6 +174,16 @@ class HiveJobLauncher(object):
         # where will the output files go?
         self.option_parser.add_option(
             '--output-dir', dest='output_dir', action='store', default=False
+            )
+
+        # Label
+        self.option_parser.add_option(
+            '--label', dest='label', action='store', default=None
+            )
+
+        # Owner
+        self.option_parser.add_option(
+            '--owner', dest='owner', action='store', default=None
             )
 
         # AWS credentials
