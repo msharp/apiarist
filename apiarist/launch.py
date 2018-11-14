@@ -148,6 +148,7 @@ class HiveJobLauncher(object):
             'hive_version': self.options.hive_version,
             'iam_instance_profile': self.options.iam_instance_profile,
             'iam_service_role': self.options.iam_service_role,
+            'visible_to_all_users': self.options.visible_to_all_users,
             's3_sync_wait_time': self.options.s3_sync_wait_time,
             'check_emr_status_every': self.options.check_emr_status_every,
             'temp_dir': self.options.scratch_dir
@@ -239,6 +240,14 @@ class HiveJobLauncher(object):
         self.option_parser.add_option(
             '--iam-service-role', dest='iam_service_role',
             action='store', default='EMR_DefaultRole'
+            )
+        self.option_parser.add_option(
+            '--visible-to-all-users', dest='visible_to_all_users',
+            action='store_true'
+            )
+        self.option_parser.add_option(
+            '--no-visible-to-all-users', dest='visible_to_all_users',
+            action='store_false'
             )
 
         # job runner options
