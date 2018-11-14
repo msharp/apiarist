@@ -26,14 +26,10 @@ except ImportError:
     from distutils.core import setup
     setuptools_kwargs = {}
 
-try:
-    from pypandoc import convert
-    read_md = lambda f: convert(f, 'rst')
-except ImportError:
-    print("warning: pypandoc module not found, could not convert MD to RST")
-    read_md = lambda f: open(f, 'r').read()
-
 import apiarist
+
+with open("README.md", "r") as fh:
+    long_description = fh.read()
 
 setup(
     author='Max Sharples',
@@ -52,9 +48,8 @@ setup(
     ],
     description='Python Hive query framework',
     license='Apache',
-    long_description=read_md(os.path.abspath(os.path.join(
-                                             os.path.dirname(__file__),
-                                             'README.md'))),
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     name='apiarist',
     packages=[
         'apiarist'
