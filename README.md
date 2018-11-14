@@ -117,6 +117,9 @@ Various options can be passed to control the running of the job. In particular t
   - `--quiet` less logging
   - `--verbose` more logging
   - `--retain-hive-table` for local mode, keep the hive table to run further ad-hoc queries.
+  - `--visible-to-all-users` make your cluster visible to all IAM users on the same AWS account. Set by default
+  - `--no-visible-to-all-users` hide your cluster from other IAM users on the same AWS account
+
 
 *NOTE: IAM roles will be mandatory for all users after June 30, 2015. These are set via the `--iam-instance-profile` and `--iam-service-role` options above.*
 
@@ -153,7 +156,7 @@ Some environment variables are used when the value is not provided in other conf
 
 `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` for connecting to AWS.
 
-`S3_SCRATCH_URI` a S3 base location where all the temporary file for the job will be written. 
+`S3_SCRATCH_URI` a S3 base location where all the temporary file for the job will be written.
 
 `APIARIST_TMP_DIR` where local files will be written during job runs. (This is overridden by the `--local-scratch-dir` option)
 
@@ -161,7 +164,7 @@ Some environment variables are used when the value is not provided in other conf
 
 ### Passing options to your jobs
 
-Jobs can be configured to accept arguments. 
+Jobs can be configured to accept arguments.
 
 To do this, add the following method to your job class to configutr the options:
 

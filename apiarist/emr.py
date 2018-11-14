@@ -41,6 +41,7 @@ class EMRRunner():
                  master_instance_type=None, slave_instance_type=None,
                  iam_instance_profile=None, iam_service_role=None,
                  aws_access_key_id=None, aws_secret_access_key=None,
+                 visible_to_all_users=None,
                  s3_sync_wait_time=5, check_emr_status_every=30,
                  label=None, owner=None, temp_dir=None):
 
@@ -63,6 +64,12 @@ class EMRRunner():
         else:
             logger.debug("Getting AWS secret key from ENV")
             self.aws_secret_access_key = os.environ['AWS_SECRET_ACCESS_KEY']
+
+        # Set visibility of job flow to all users if visible_to_all_users is None
+        if visible_to_all_users is None:
+            self.visible_to_all_users = True
+        else:
+            self.visible_to_all_users = visible_to_all_users
 
         self.s3_sync_wait_time = s3_sync_wait_time
         self.check_emr_status_every = check_emr_status_every
@@ -197,7 +204,8 @@ class EMRRunner():
             ami_version=self.ami_version,
             num_instances=self.num_instances,
             job_flow_role=self.iam_instance_profile,
-            service_role=self.iam_service_role)
+            service_role=self.iam_service_role,
+            visible_to_all_users=self.visible_to_all_users)
 
         conn.add_jobflow_steps(cluster_id, [setup_step, run_step])
 
